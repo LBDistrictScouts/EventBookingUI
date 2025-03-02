@@ -1,0 +1,15 @@
+:root {
+  --bs-primary: #7413dc;
+  --bs-secondary: #00a794;
+  --bs-primary-bg-subtle: #00a794;
+}
+
+li {
+  padding-bottom: 6px;
+}
+
+.bg-gradient-primary {
+  background-color: var(--bs-primary);
+  background-image: linear-gradient(180deg, #eee 10%, #7413dc 100%);
+  background-size: cover;
+}
