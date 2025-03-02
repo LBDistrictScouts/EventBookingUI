@@ -29,12 +29,22 @@ export interface Section extends BackEndObject {
     participant_type: ParticipantType;
 }
 
-export interface Participant {
-    access_key: string;
+export interface BaseParticipant {
     first_name: string;
     last_name: string;
     participant_type_id: undefined|string;
     section_id: undefined|string;
+}
+
+export interface SavedParticipant extends BaseParticipant {
+    id: string;
+    entry_id: string;
+    created: string;
+    modified: string;
+}
+
+export interface Participant extends BaseParticipant {
+    access_key: string;
     participant_type: undefined|ParticipantType;
     section: undefined|Section;
 }
@@ -63,8 +73,19 @@ export interface GroupedSection {
     }[];
 }
 
-export interface Entry {
-    participants: Participant[];
+export interface BaseEntry {
+    event_id: string;
+    entry_name: string;
+    entry_email: string;
+    entry_mobile: string;
+}
+
+export interface SavedEntry extends BaseEntry {
+    id: string;
+    security_code: string;
+    created: string;
+    modified: string;
+    participants: SavedParticipant[];
 }
 
 export interface ServerValidationErrorList {
@@ -76,7 +97,7 @@ export interface ServerValidationErrorList {
 
 export interface EntrySubmissionResponse {
     success: boolean;
-    entry: Entry;
+    entry: SavedEntry;
     message: string;
     errors: ServerValidationErrorList;
 }

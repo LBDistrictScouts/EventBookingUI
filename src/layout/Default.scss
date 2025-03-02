@@ -1,7 +1,9 @@
 :root {
   --bs-primary: #7413dc;
   --bs-secondary: #00a794;
+  --bs-success: #23a950;
   --bs-primary-bg-subtle: #00a794;
+  --bs-body-font-family: Nunito, sans-serif;
 }
 
 .bg-gradient-primary {
@@ -12,6 +14,11 @@
 
 .fit-cover {
   object-fit: cover;
+}
+
+ol {
+  text-align: start;
+  padding-left: 1rem;
 }
 
 @import 'bs-icons';

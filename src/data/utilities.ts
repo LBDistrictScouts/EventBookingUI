@@ -8,22 +8,22 @@ export function validateString(input: unknown): input is string {
 
 function getDefaultCookieOpts(): object {
     if (window.location.href.includes('localhost')) {
-        return {sameSite: 'none'}
+        return {sameSite: 'None', secure: false, domain: 'localhost'};
     }
 
-    return {sameSite: 'none', secure: true}
+    return {sameSite: 'None', secure: true}
 }
 
 const defaultCookieOpts: object = getDefaultCookieOpts();
 
 
-export function getOrMakeCookie(cookie_key: string, cookie_generator: Function): string {
+export function getOrMakeCookie(cookie_key: string, cookie_generator: () => string): string {
     if (!validateString(cookie_key)) {
         throw new Error('Cookie Key is not a valid string.')
     }
 
     let return_value: string | undefined
-    let cookie_value = getCookie(cookie_key)
+    const cookie_value = getCookie(cookie_key)
 
     if (!validateString(cookie_value)) {
         return_value = cookie_generator()
@@ -32,18 +32,17 @@ export function getOrMakeCookie(cookie_key: string, cookie_generator: Function):
         return_value = cookie_value
     }
 
-    if (typeof return_value !== "string") {
-        throw new Error('Value must be string.')
-    }
-
     return return_value
 }
 
+function ensureString(input: number|string|undefined|object): string {
+    return typeof input === "string" ? input : JSON.stringify(input);
+}
 
-export function setValidCookie(cookie_key: string, cookie_value: number|string|undefined, attributes: object = {}): string {
+export function setValidCookie(cookie_key: string, cookie_value: number|string|undefined|object, attributes: object = {}): string {
     attributes = defaultCookieOpts || attributes
 
-    return setCookie(cookie_key, cookie_value, attributes);
+    return setCookie(cookie_key, ensureString(cookie_value), attributes);
 }
 
 

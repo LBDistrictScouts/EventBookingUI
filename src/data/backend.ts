@@ -3,10 +3,11 @@ import {
     CategorisedParticipantType,
     GroupedSection,
     SectionsDataResponse, EntrySubmissionResponse,
-    ServerValidationErrorList, doesNotHaveKeyInErrors
+    ServerValidationErrorList, doesNotHaveKeyInErrors, SavedEntry
 } from "./dataTypes.ts";
 import {looseInstanceOf, assertReadableResponse, JsonValue, isJsonObject} from "./utilities.ts";
 import {transformToSections, transformToTypes} from "./transform.ts";
+import {getCookie} from "typescript-cookie";
 
 const host = 'http://localhost:8765';
 
@@ -20,13 +21,16 @@ function getOriginDevLocalhost(): string {
 }
 
 
-
-
 async function fetchRequest(path: string, method: string = 'GET', data: undefined|object = undefined): Promise<Response> {
     const headers = new Headers();
     headers.set("Content-Type", "application/json; charset=UTF-8");
     headers.set('accept', 'application/json');
     headers.set('Origin', getOriginDevLocalhost())
+
+    const csrf: string|undefined = getCookie('csrfToken');
+    if (csrf) {
+        headers.set('X-CSRF-Token', csrf);
+    }
 
     const url = new URL(host + path);
     const mode = 'cors';
@@ -67,7 +71,6 @@ async function processParticipantTypes(response: Response): Promise<CategorisedP
     if (!isJsonObject<ParticipantTypesDataResponse>(json)) {
         throw new Error('"response" body must be a top level object')
     }
-
 
     return transformToTypes(json.participantTypes)
 }
@@ -117,7 +120,7 @@ export async function getSections(): Promise<GroupedSection[]> {
 }
 
 
-export async function SubmitEntryData(data: object, setServerErrors: CallableFunction): Promise<EntrySubmissionResponse> {
+export async function SubmitEntryData(data: object, setServerErrors: CallableFunction, setSavedEntry: (entry: SavedEntry) => void): Promise<EntrySubmissionResponse> {
     const response = await fetchRequest('/book.json', 'POST', data)
 
     const result = await response.json();
@@ -128,6 +131,12 @@ export async function SubmitEntryData(data: object, setServerErrors: CallableFun
     if (response.ok && result.success) {
         console.log("Success:", result.message);
         // Handle success (e.g., show a success message or redirect)
+
+        if (!isJsonObject<SavedEntry>(result.entry)) {
+            throw new Error('Entry is invalid.')
+        }
+
+        setSavedEntry(result.entry)
     } else {
         console.error("Error:", result.message);
         // Handle error (e.g., show an error message)
@@ -141,17 +150,17 @@ export async function SubmitEntryData(data: object, setServerErrors: CallableFun
 export function handleFieldError(fieldName: string, serverErrors: ServerValidationErrorList): string | undefined
 {
     if (doesNotHaveKeyInErrors(fieldName, serverErrors)) {
+        // console.log('Field: ', fieldName, 'Success')
         return undefined;
     }
 
     const errors = serverErrors[fieldName];
 
-    if (typeof errors == "object") {
-        const errValue = errors ? errors[0] : undefined;
-
-        if (typeof errValue === "string") {
-            return errValue;
-        }
+    if (typeof errors === "object") {
+        Object.values(errors).forEach((err) => {
+            console.error('Field: ', fieldName, err)
+            return err;
+        })
 
         return ;
     }

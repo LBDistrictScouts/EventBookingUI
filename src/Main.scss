@@ -52,3 +52,24 @@
   background-position: center;
   background-size: cover;
 }
+
+.bg-confirmation-image {
+  background-image: url('/public/img/male-volunteer-in-cap-jpg.jpg');
+  background-position: center;
+  background-size: cover;
+}
+
+.bs-icon.bs-icon-primary {
+  background: var(--bs-success);
+}
+
+:root {
+  --bs-primary: #7413dc;
+  --bs-secondary: #00a794;
+  --bs-success: #23a950;
+  --bs-primary-bg-subtle: #00a794;
+  --bs-body-font-family: Nunito, sans-serif;
+  --bs-heading-color: rgb(133, 135, 150);
+  --bs-body-text-align: start;
+  --bs-btn-bg: #23a950;
+}

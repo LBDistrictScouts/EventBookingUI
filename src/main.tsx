@@ -1,8 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from "react-router";
-import './index.css'
 import App from './App.tsx'
+import './Main.scss'
 import Register from './pages/register/Register.tsx'
 import DefaultLayout from "./layout/Default.tsx";
 

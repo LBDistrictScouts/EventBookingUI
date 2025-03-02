@@ -3,6 +3,7 @@ import {ChangeEvent, ReactElement, useState} from "react";
 import {CategorisedParticipantType, GroupedSection, Participant} from '../../data/dataTypes.tsx'
 import {ServerValidationErrorList} from "../../data/dataTypes.ts";
 import {handleFieldError} from "../../data/backend.ts";
+import Button from "react-bootstrap/Button";
 
 interface RegisterParticipantParams {
     participantIdx: number;
@@ -11,6 +12,7 @@ interface RegisterParticipantParams {
     participantTypeList: CategorisedParticipantType[];
     onParticipantChange: (index: number, updatedParticipant: Participant) => void;
     serverErrors: ServerValidationErrorList;
+    removeParticipant: () => void;
 }
 
 
@@ -22,6 +24,7 @@ export function RegisterParticipant(
         participantTypeList,
         onParticipantChange,
         serverErrors,
+        removeParticipant,
     }: RegisterParticipantParams): ReactElement
 {
     // <tr key={memberRecord.member_id}>
@@ -171,6 +174,11 @@ export function RegisterParticipant(
                                 ))
                             ) : ''}
                         </Form.Select>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col content={'right'}>
+                        <Button variant="danger" size="sm" onClick={removeParticipant}>Remove Participant</Button>
                     </Col>
                 </Row>
             </AccordionBody>
