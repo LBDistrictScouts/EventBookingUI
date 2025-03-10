@@ -108,3 +108,32 @@ export function doesNotHaveKeyInErrors(
 ): boolean {
     return !(key in errors);
 }
+
+export interface Checkpoint {
+    checkpoint_sequence: number;
+    checkpoint_name: string;
+    event_id: string;
+}
+
+export interface Question {
+    event_id: string;
+    question_text: string;
+    answer_text: string;
+}
+
+export interface BookableEvent {
+    id: string;
+    event_name: string;
+    event_description: string;
+    booking_code: string;
+    start_time: string;
+    bookable: boolean;
+    finished: boolean;
+    checkpoints: Checkpoint[];
+    questions: Question[];
+    sections: Section[];
+}
+
+export interface BookableEventResponse {
+    event: BookableEvent;
+}

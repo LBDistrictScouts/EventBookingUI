@@ -1,6 +1,7 @@
 import {ReactElement} from "react";
+import {BookableEvent, Checkpoint} from "../../data/dataTypes.ts";
 
-export function Checkpoints(): ReactElement {
+export function Checkpoints({bookableEvent}: {bookableEvent: BookableEvent}): ReactElement {
 
 
     return (
@@ -16,13 +17,11 @@ export function Checkpoints(): ReactElement {
             <div>
                 <h4>Checkpoints</h4>
                 <ol start={0}>
-                    <li>Start / End - Standalone Farm Car Park</li>
-                    <li>Nortonbury</li>
-                    <li>1st Baldock Scout HQ</li>
-                    <li>Woolgrove School</li>
-                    <li>Manor Wood</li>
-                    <li>Wymondley Wood</li>
-                    <li>Highfield Road</li>
+                    {
+                        bookableEvent.checkpoints.map((ckpt: Checkpoint) => {
+                            return <li key={ckpt.checkpoint_sequence}>{ckpt.checkpoint_name}</li>
+                        })
+                    }
                 </ol>
             </div>
         </div>

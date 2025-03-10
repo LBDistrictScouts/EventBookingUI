@@ -3,15 +3,20 @@ import {
     CategorisedParticipantType,
     GroupedSection,
     SectionsDataResponse, EntrySubmissionResponse,
-    ServerValidationErrorList, doesNotHaveKeyInErrors, SavedEntry
-} from "./dataTypes.ts";
-import {looseInstanceOf, assertReadableResponse, JsonValue, isJsonObject} from "./utilities.ts";
-import {transformToSections, transformToTypes} from "./transform.ts";
+    ServerValidationErrorList, doesNotHaveKeyInErrors, SavedEntry, BookableEventResponse, BookableEvent
+} from "./dataTypes";
+import {looseInstanceOf, assertReadableResponse, JsonValue, isJsonObject} from "./utilities";
+import {transformToSections, transformToTypes} from "./transform";
 import {getCookie} from "typescript-cookie";
 
-const host = 'http://localhost:8765';
+let host = 'https://' + window.location.host;
 
-function getOriginDevLocalhost(): string {
+if (host.includes('localhost')) {
+    host = host.replace('5173', '8765');
+    host = host.replace('https://', 'http://');
+}
+
+export function getOriginDevLocalhost(): string {
     let currentHref = window.location.href
     if (currentHref.includes('localhost')) {
         currentHref = currentHref.replace('http://', 'https://')
@@ -21,7 +26,7 @@ function getOriginDevLocalhost(): string {
 }
 
 
-async function fetchRequest(path: string, method: string = 'GET', data: undefined|object = undefined): Promise<Response> {
+export async function fetchRequest(path: string, method: string = 'GET', data: undefined|object = undefined): Promise<Response> {
     const headers = new Headers();
     headers.set("Content-Type", "application/json; charset=UTF-8");
     headers.set('accept', 'application/json');
@@ -36,17 +41,15 @@ async function fetchRequest(path: string, method: string = 'GET', data: undefine
     const mode = 'cors';
 
     if (!data) {
-        const request = new Request(url, {headers, method, mode})
-        return fetch(request);
+        return fetch(url, {headers, method, mode});
     }
 
-    const request = new Request(url, {
+    return fetch(url, {
         headers,
         method,
         mode,
         'body': JSON.stringify(data)
-    })
-    return fetch(request);
+    });
 }
 
 
@@ -55,7 +58,7 @@ async function processParticipantTypes(response: Response): Promise<CategorisedP
         throw new TypeError('"response" must be an instance of Response')
     }
 
-    if (response.status !== 200) {
+    if (!response.ok) {
         throw new Error('"response" was not successful.')
     }
 
@@ -82,6 +85,40 @@ export async function getParticipantTypes(): Promise<CategorisedParticipantType[
     const response = await fetchRequest(path)
 
     return processParticipantTypes(response)
+}
+
+async function processBookableEvent(response: Response): Promise<BookableEvent> {
+    if (!looseInstanceOf(response, Response)) {
+        throw new TypeError('"response" must be an instance of Response')
+    }
+
+    if (!response.ok) {
+        throw new Error('"response" was not successful.')
+    }
+
+    let json: JsonValue
+
+    assertReadableResponse(response)
+    try {
+        json = await response.json()
+    } catch {
+        throw new Error('failed to parse "response" body as JSON')
+    }
+
+    if (!isJsonObject<BookableEventResponse>(json)) {
+        throw new Error('"response" body must be a top level object')
+    }
+
+    return json.event
+}
+
+
+export async function getBookableEvent(): Promise<BookableEvent> {
+    const path = '/events/current.json'
+
+    const response = await fetchRequest(path)
+
+    return processBookableEvent(response)
 }
 
 async function processSections(response: Response): Promise<GroupedSection[]> {
@@ -121,7 +158,7 @@ export async function getSections(): Promise<GroupedSection[]> {
 
 
 export async function SubmitEntryData(data: object, setServerErrors: CallableFunction, setSavedEntry: (entry: SavedEntry) => void): Promise<EntrySubmissionResponse> {
-    const response = await fetchRequest('/book.json', 'POST', data)
+    const response = await fetchRequest( '/book.json', 'POST', data)
 
     const result = await response.json();
     if (!isJsonObject<EntrySubmissionResponse>(result)) {

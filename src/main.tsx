@@ -13,7 +13,7 @@ createRoot(document.getElementById('root')!).render(
           <DefaultLayout>
               <Routes>
                   <Route path="/" element={<App />} />
-                  <Route path="/register" element={<Register />} />
+                  <Route path="/register/:event_id" element={<Register />} />
               </Routes>
           </DefaultLayout>
       </BrowserRouter>

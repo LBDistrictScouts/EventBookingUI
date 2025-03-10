@@ -1,4 +1,4 @@
-import {ParticipantType, CategorisedParticipantType, Section, GroupedSection} from './dataTypes.ts'
+import {ParticipantType, CategorisedParticipantType, Section, GroupedSection} from './dataTypes'
 
 
 

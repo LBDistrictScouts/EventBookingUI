@@ -1,6 +1,7 @@
 import PrivacyStatement from "./PrivacyStatement.tsx";
 import {Accordion, Form, FormControl} from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
+import { useParams } from "react-router";
 
 import {
     CategorisedParticipantType,
@@ -21,6 +22,8 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 
+import InputHelper from '../../layout/text/InputHelper.tsx'
+
 
 interface RegisterFormProps {
     setSavedEntry: (entry: SavedEntry) => void;
@@ -38,6 +41,8 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
     const [entryMobile, setEntryMobile] = useState<string>("");
     const [serverErrors, setServerErrors] = useState<ServerValidationErrorList>({}); // Store server errors
 
+    const { event_id } = useParams<{ event_id: string }>();
+
     useEffect(() => {
         Promise.all([getParticipantTypes(), getSections()])
             .then(([types, sections]) => {
@@ -46,6 +51,10 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
             })
             .finally(() => setLoading(false));
     }, []);
+
+    if (loading || !event_id) {
+        return <div>Loading...</div>;
+    }
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -64,7 +73,7 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
         }
 
         const data: Record<string, Participant[]|string|FormDataEntryValue> = {
-            event_id: '339b303b-b847-4610-b3a3-990c10afe4e8',
+            event_id: event_id,
             entry_name: entryName,
             entry_email: entryEmail,
             entry_mobile: entryMobile,
@@ -98,10 +107,6 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
         });
     };
 
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
     return (
         <Form validated={validated} onSubmit={handleSubmit} className={'user'}>
             {/* Display custom validation errors */}
@@ -109,7 +114,7 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
                 <div className="alert alert-danger">
                     <ul>
                         {errors.map((error, index) => (
-                            <li key={index}>{error}</li>
+                            <li className={'alert-warning'} key={index}>{error}</li>
                         ))}
                     </ul>
                 </div>
@@ -128,6 +133,7 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
                 <Form.Control.Feedback type="invalid" >
                     {handleFieldError("entry_name", serverErrors)}
                 </Form.Control.Feedback>
+                <InputHelper text={'All members of your walking party must be registered on the same booking form.'} />
             </div>
             <div className="mb-3">
                 <FormControl
@@ -143,19 +149,23 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
                 <Form.Control.Feedback type="invalid">
                     {handleFieldError("entry_email", serverErrors)}
                 </Form.Control.Feedback>
+                <InputHelper text={'We need an email to send your booking confirmation and security code. We will also use it to send a reminder just before the event.'} />
             </div>
             <div className="mb-3">
                 <FormControl
+                    id={'entry_mobile'}
                     required
                     onChange={(e) => setEntryMobile(e.target.value)}
                     isInvalid={!!handleFieldError("entry_mobile", serverErrors)}
                     className="form-control-user"
+                    type={'tel'}
                     placeholder="Mobile Number"
-                    name="entry_mobile"
+                    name={'entry_mobile'}
                 />
                 <Form.Control.Feedback type="invalid">
                     {handleFieldError("entry_mobile", serverErrors)}
                 </Form.Control.Feedback>
+                <InputHelper text={'We need a contact phone number for on the day, in case you are late back or there is an issue.'} />
             </div>
             <Row>
                 <Col className="text-end mb-3">
