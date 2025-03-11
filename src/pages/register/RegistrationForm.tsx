@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import { useParams } from "react-router";
 
 import {
-    CategorisedParticipantType,
-    GroupedSection,
+    ParticipantType,
+    Section,
     Participant, SavedEntry,
     ServerValidationErrorList
 } from '../../data/dataTypes.ts'
@@ -23,6 +23,7 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 
 import InputHelper from '../../layout/text/InputHelper.tsx'
+import * as React from "react";
 
 
 interface RegisterFormProps {
@@ -34,8 +35,8 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
     const [errors, setErrors] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [participants, setParticipants] = useState<Participant[]>([]);
-    const [participantTypeList, setParticipantTypeList] = useState<CategorisedParticipantType[]>([]);
-    const [sectionList, setSectionList] = useState<GroupedSection[]>([]);
+    const [participantTypes, setParticipantTypes] = useState<ParticipantType[]>([]);
+    const [sections, setSections] = useState<Section[]>([]);
     const [entryName, setEntryName] = useState<string>("");
     const [entryEmail, setEntryEmail] = useState<string>("");
     const [entryMobile, setEntryMobile] = useState<string>("");
@@ -46,8 +47,8 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
     useEffect(() => {
         Promise.all([getParticipantTypes(), getSections()])
             .then(([types, sections]) => {
-                setParticipantTypeList(types);
-                setSectionList(sections);
+                setParticipantTypes(types);
+                setSections(sections);
             })
             .finally(() => setLoading(false));
     }, []);
@@ -180,8 +181,8 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
                         key={participant.access_key}
                         participantIdx={index}
                         participant={participant}
-                        participantTypeList={participantTypeList}
-                        sectionList={sectionList}
+                        participantTypes={participantTypes}
+                        sections={sections}
                         onParticipantChange={handleParticipantChange}
                         serverErrors={getParticipantServerErrors(index, serverErrors)}
                         removeParticipant={() => handleRemoveParticipant(index)} // ✅ Pass function

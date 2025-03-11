@@ -1,6 +1,8 @@
 # To Do
 
-1. Email Mailer
+1. More responsive Design
+2. Full Section List
+2. Email Mailer
 2. Interconnected Drop-Downs: Participant
 3. Questions
 

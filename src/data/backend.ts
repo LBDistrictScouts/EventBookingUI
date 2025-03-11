@@ -1,12 +1,10 @@
 import {
     ParticipantTypesDataResponse,
-    CategorisedParticipantType,
-    GroupedSection,
+    Section,
     SectionsDataResponse, EntrySubmissionResponse,
-    ServerValidationErrorList, doesNotHaveKeyInErrors, SavedEntry, BookableEventResponse, BookableEvent
+    ServerValidationErrorList, doesNotHaveKeyInErrors, SavedEntry, BookableEventResponse, BookableEvent, ParticipantType
 } from "./dataTypes";
 import {looseInstanceOf, assertReadableResponse, JsonValue, isJsonObject} from "./utilities";
-import {transformToSections, transformToTypes} from "./transform";
 import {getCookie} from "typescript-cookie";
 
 let host = 'https://' + window.location.host;
@@ -53,7 +51,7 @@ export async function fetchRequest(path: string, method: string = 'GET', data: u
 }
 
 
-async function processParticipantTypes(response: Response): Promise<CategorisedParticipantType[]> {
+async function processParticipantTypes(response: Response): Promise<ParticipantType[]> {
     if (!looseInstanceOf(response, Response)) {
         throw new TypeError('"response" must be an instance of Response')
     }
@@ -75,11 +73,11 @@ async function processParticipantTypes(response: Response): Promise<CategorisedP
         throw new Error('"response" body must be a top level object')
     }
 
-    return transformToTypes(json.participantTypes)
+    return json.participantTypes
 }
 
 
-export async function getParticipantTypes(): Promise<CategorisedParticipantType[]> {
+export async function getParticipantTypes(): Promise<ParticipantType[]> {
     const path = '/participant-types.json'
 
     const response = await fetchRequest(path)
@@ -121,7 +119,7 @@ export async function getBookableEvent(): Promise<BookableEvent> {
     return processBookableEvent(response)
 }
 
-async function processSections(response: Response): Promise<GroupedSection[]> {
+async function processSections(response: Response): Promise<Section[]> {
     if (!looseInstanceOf(response, Response)) {
         throw new TypeError('"response" must be an instance of Response')
     }
@@ -144,11 +142,11 @@ async function processSections(response: Response): Promise<GroupedSection[]> {
     }
 
 
-    return transformToSections(json.sections)
+    return json.sections
 }
 
 
-export async function getSections(): Promise<GroupedSection[]> {
+export async function getSections(): Promise<Section[]> {
     const path = '/sections.json'
 
     const response = await fetchRequest(path)

@@ -1,15 +1,16 @@
 import {AccordionBody, AccordionHeader, AccordionItem, Form, FormLabel, Col, Row} from "react-bootstrap";
-import {ChangeEvent, ReactElement, useState} from "react";
-import {CategorisedParticipantType, GroupedSection, Participant} from '../../data/dataTypes.tsx'
-import {ServerValidationErrorList} from "../../data/dataTypes.ts";
-import {handleFieldError} from "../../data/backend.ts";
+import {ChangeEvent, ReactElement, useEffect, useState} from "react";
+import {Section, ParticipantType, CategorisedParticipantType, GroupedSection, Participant} from '../../data/dataTypes'
+import {ServerValidationErrorList} from "../../data/dataTypes";
+import {handleFieldError} from "../../data/backend";
 import Button from "react-bootstrap/Button";
+import {participantTypeAdjust, transformToSections, transformToTypes} from "../../data/transform";
 
 interface RegisterParticipantParams {
     participantIdx: number;
     participant: Participant;
-    sectionList: GroupedSection[];
-    participantTypeList: CategorisedParticipantType[];
+    sections: Section[];
+    participantTypes: ParticipantType[];
     onParticipantChange: (index: number, updatedParticipant: Participant) => void;
     serverErrors: ServerValidationErrorList;
     removeParticipant: () => void;
@@ -20,23 +21,25 @@ export function RegisterParticipant(
     {
         participantIdx,
         participant,
-        sectionList,
-        participantTypeList,
+        sections,
+        participantTypes,
         onParticipantChange,
         serverErrors,
         removeParticipant,
     }: RegisterParticipantParams): ReactElement
 {
-    // <tr key={memberRecord.member_id}>
-    //     <td><Form.Check key={memberRecord.member_id} id={String(memberRecord.member_id)} defaultChecked={true} onChange={handleCheckboxChange}/></td>
-    //     <td>{memberRecord.first_name} {memberRecord.last_name}</td>
-    //     <td>{memberRecord.member_id}<Form.Control hidden={true} readOnly={true} value={memberRecord.member_id}/></td>
-    //     <td>{memberRecord.age}</td>
-    //     <td>{getExtractionData(memberRecord).selectedPostcode}</td>
-    //     <td>{getExtractionData(memberRecord).otherPostcodes.map((postcode, index) => (
-    //         <Badge key={index} bg={'secondary'}>{postcode}</Badge>
-    //     ))}</td>
-    // </tr>
+    const [selectedType, setSelectedType] = useState<string>("");
+    const [selectedTypeLabel, setSelectedTypeLabel] = useState<string>("");
+    const [selectedSection, setSelectedSection] = useState<string>("");
+    const [firstName, setFirstName] = useState<string>("");
+    const [lastName, setLastName] = useState<string>("");
+    const [participantTypeList, setParticipantTypeList] = useState<CategorisedParticipantType[]>([]);
+    const [sectionList, setSectionList] = useState<GroupedSection[]>(transformToSections(sections));
+    const [enableSection, setEnableSection] = useState<boolean>(true);
+
+    useEffect(() => {
+        setParticipantTypeList(transformToTypes(participantTypes))
+    }, [participantTypes]);
 
     const getTypeLabel = (participantTypeId: string): string => {
         for (const category of participantTypeList) {
@@ -51,12 +54,6 @@ export function RegisterParticipant(
         return "";
     }
 
-    const [selectedType, setSelectedType] = useState<string>("");
-    const [selectedTypeLabel, setSelectedTypeLabel] = useState<string>("");
-    const [selectedSection, setSelectedSection] = useState<string>("");
-    const [firstName, setFirstName] = useState<string>("");
-    const [lastName, setLastName] = useState<string>("");
-
     const handleInputChange = (event: ChangeEvent<HTMLSelectElement|HTMLInputElement>) => {
         const { name, value } = event.target;
         const updatedParticipant = { ...participant, [name]: value };
@@ -67,6 +64,14 @@ export function RegisterParticipant(
         participant.participant_type_id = event.target.value;
         setSelectedTypeLabel(getTypeLabel(event.target.value));
         setSelectedType(event.target.value);
+
+        participantTypeAdjust(
+            participantTypes,
+            sections,
+            event.target.value,
+            setEnableSection,
+            setSectionList
+        )
 
         handleInputChange(event);
     };
@@ -158,7 +163,10 @@ export function RegisterParticipant(
                 <Row className={'x-visually-hidden mb-3'}>
                     <Col>
                         <FormLabel>Section</FormLabel>
-                        <Form.Select value={selectedSection} onChange={handleSectionChange}>
+                        <Form.Select
+                            value={selectedSection}
+                            disabled={!enableSection}
+                            onChange={handleSectionChange}>
                             <option value="" disabled>
                                 Select a Section
                             </option>
