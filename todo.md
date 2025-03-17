@@ -1,10 +1,11 @@
 # To Do
-
-1. More responsive Design
-2. Full Section List
-2. Email Mailer
-2. Interconnected Drop-Downs: Participant
-3. Questions
+1. Email Mailer
+2. Retry failed calls
+3. ~~More responsive Design~~ 
+4. ~~Full Section List~~ 
+5. ~~Interconnected Drop-Downs: Participant~~ 
+6. ~~Questions~~
+7. ~~Auth Admin~~
 
 ## Post Launch
 1. Checkin Process
@@ -14,4 +15,4 @@
 
 ## Extra
 1. Editable submission
-2. Auth Admin
+2. Local Storage with listing

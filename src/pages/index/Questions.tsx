@@ -1,6 +1,9 @@
 import {ReactElement} from "react";
+import {MarkdownRenderer} from '../../data/markdown'
+import {BookableEvent, Question} from "../../data/dataTypes";
+import {Accordion} from "react-bootstrap";
 
-export function Questions(): ReactElement {
+export function Questions({bookableEvent}: {bookableEvent: BookableEvent}): ReactElement {
 
 
     return (
@@ -16,13 +19,20 @@ export function Questions(): ReactElement {
             <div>
                 <h4>Frequently Asked Questions</h4>
                 <p>We've compiled a list of information that will help you answer questions about what the event is.</p>
-                <a href="#" data-bs-target="#modal-1" data-bs-toggle="modal">Learn More&nbsp;
-                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor"
-                         viewBox="0 0 16 16" className="bi bi-arrow-right">
-                        <path
-                              d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"></path>
-                    </svg>
-                </a>
+                <Accordion role={"tablist"} id={'question-accordion'}>
+                {
+                    bookableEvent.questions.map((question: Question) => {
+                        return (
+                            <Accordion.Item eventKey={question.id}>
+                                <Accordion.Header><MarkdownRenderer markdownText={question.question_text} /></Accordion.Header>
+                                <Accordion.Body>
+                                    <MarkdownRenderer markdownText={question.answer_text}   />
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )
+                    })
+                }
+                </Accordion>
             </div>
         </div>
     )

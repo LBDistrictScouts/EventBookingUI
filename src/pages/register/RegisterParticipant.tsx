@@ -112,7 +112,7 @@ export function RegisterParticipant(
             </AccordionHeader>
             <AccordionBody>
                 <Row className={'x-visually-hidden mb-3'}>
-                    <Col>
+                    <Col className={'px-0 px-md-3'}>
                         <FormLabel>Participant Type</FormLabel>
                         <Form.Select
                             value={selectedType}
@@ -138,10 +138,10 @@ export function RegisterParticipant(
                     </Col>
                 </Row>
                 <Row className={'mb-3'}>
-                    <Col className={'col-12'}>
+                    <Col className={'col-12 px-0 px-md-3'}>
                         <FormLabel>Participant Name</FormLabel>
                     </Col>
-                    <Col className={'col-6'}>
+                    <Col className={'col-md-6 col-12 py-3 px-0 px-md-3'}>
                         <Form.Control
                             isInvalid={!!handleFieldError('first_name', serverErrors)}
                             placeholder={'First Name'}
@@ -150,7 +150,7 @@ export function RegisterParticipant(
                         />
                         <Form.Control.Feedback type="invalid">{handleFieldError('first_name', serverErrors)}</Form.Control.Feedback>
                     </Col>
-                    <Col className={'col-6'}>
+                    <Col className={'col-md-6 col-12 py-3 px-0 px-md-3'}>
                         <Form.Control
                             isInvalid={!!handleFieldError('last_name', serverErrors)}
                             placeholder={'Last Name'}
@@ -161,7 +161,7 @@ export function RegisterParticipant(
                     </Col>
                 </Row>
                 <Row className={'x-visually-hidden mb-3'}>
-                    <Col>
+                    <Col className={'px-0 px-md-3'}>
                         <FormLabel>Section</FormLabel>
                         <Form.Select
                             value={selectedSection}

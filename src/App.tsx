@@ -49,7 +49,7 @@ function App(): ReactElement {
                       <hr className="my-5"/>
                       <Checkpoints bookableEvent={evtData} />
                       <hr className="my-5"/>
-                      <Questions />
+                      <Questions bookableEvent={evtData} />
                   </Col>
               </Row>
 

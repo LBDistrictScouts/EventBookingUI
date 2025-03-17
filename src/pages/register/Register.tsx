@@ -39,19 +39,19 @@ function Register(): ReactElement {
                         <Col lg={5} className={'d-none d-lg-flex'} >
                             <div className="flex-grow-1 bg-confirmation-image"></div>
                         </Col>
-                        <div className="col-lg-7">
-                            <div className="lg-p5 p-4">
-                                <div className="card bg-success bg-opacity-25">
+                        <Col lg={7}>
+                            <div className="p-3 p-lg-5">
+                                <div className="card bg-success bg-opacity-25 px-0 px-md-3">
                                     <div className="card-body">
                                         <h4 className="card-title">Registration Confirmed</h4>
                                         <h6 className="text-muted card-subtitle my-3">Walking Group Name: <strong>"{savedEntry.entry_name}"</strong></h6>
                                         <h6 className="text-muted card-subtitle my-3">Contact Email: <strong>"{savedEntry.entry_email}"</strong></h6>
                                         <h6 className="text-muted card-subtitle my-3">Contact Mobile: <strong>"{savedEntry.entry_mobile}"</strong></h6>
-                                        <div className="card my-3">
+                                        <div className="card my-3 px-0 px-md-2 px-lg-3">
                                             <div className="card-body">
                                                 <div className="row">
-                                                    <div className="col-sm-6">
-                                                        <p className="fs-1">24-293</p>
+                                                    <div className="col-sm-7">
+                                                        <p className="fs-1">{savedEntry.event.booking_code}-{savedEntry.reference_number}</p>
                                                         <p>Booking Reference</p>
                                                     </div>
                                                     <div className="col">
@@ -67,7 +67,7 @@ function Register(): ReactElement {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Col>
                     </Row>
                 </Card.Body>
             </Card>
@@ -83,7 +83,7 @@ function Register(): ReactElement {
                         <div className="flex-grow-1 bg-register-image"></div>
                     </Col>
                     <Col lg={7}>
-                        <div className="p-5">
+                        <div className="p-3 p-lg-5">
                             <div className="text-center">
                                 <h4 className="text-dark mb-4">Register for Greenway Walk</h4>
                             </div>

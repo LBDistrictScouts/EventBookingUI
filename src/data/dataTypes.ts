@@ -83,6 +83,8 @@ export interface BaseEntry {
 export interface SavedEntry extends BaseEntry {
     id: string;
     security_code: string;
+    reference_number: number;
+    event: BookableEvent;
     created: string;
     modified: string;
     participants: SavedParticipant[];
@@ -116,6 +118,7 @@ export interface Checkpoint {
 }
 
 export interface Question {
+    id: string;
     event_id: string;
     question_text: string;
     answer_text: string;
