@@ -112,6 +112,7 @@ export function doesNotHaveKeyInErrors(
 }
 
 export interface Checkpoint {
+    id: string;
     checkpoint_sequence: number;
     checkpoint_name: string;
     event_id: string;
@@ -139,4 +140,48 @@ export interface BookableEvent {
 
 export interface BookableEventResponse {
     event: BookableEvent;
+}
+
+export interface EntryParticipant {
+    id: string;
+    first_name: string;
+    last_name: string;
+    entry_id: string;
+    participant_type_id: string;
+    section_id: string;
+    checked_in: boolean;
+    checked_out: boolean;
+    created: string;
+    modified: string;
+    deleted: string | null;
+    highest_check_in_sequence: number;
+    full_name: string;
+}
+
+export interface Entry {
+    id: string;
+    event_id: string;
+    entry_name: string;
+    participant_count: number;
+    checked_in_count: number;
+    created: string;
+    modified: string;
+    reference_number: number;
+    participants: EntryParticipant[];
+}
+
+export interface EntryResponse {
+    entry: Entry;
+}
+
+
+export interface Lookup {
+    reference_number: string,
+    security_code: string
+}
+
+export interface ValidCheckInRequest {
+    checkpoint_id: string;
+    entry_id: string;
+    participants: string[]
 }

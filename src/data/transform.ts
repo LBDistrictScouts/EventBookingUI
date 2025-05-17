@@ -1,4 +1,11 @@
-import {ParticipantType, CategorisedParticipantType, Section, GroupedSection} from './dataTypes'
+import {
+    ParticipantType,
+    CategorisedParticipantType,
+    Section,
+    GroupedSection,
+    Checkpoint,
+    BookableEvent
+} from './dataTypes'
 import * as React from "react";
 
 
@@ -78,26 +85,39 @@ export function participantTypeAdjust(
     sections: Section[],
     selectedParticipantTypeId: string,
     setEnableSection: React.Dispatch<React.SetStateAction<boolean>>,
-    setSectionList: React.Dispatch<React.SetStateAction<GroupedSection[]>>
+    setSectionList: React.Dispatch<React.SetStateAction<GroupedSection[]>>,
+    setRequireSection: React.Dispatch<React.SetStateAction<boolean>>,
+    deps: {
+        retrieveParticipantType: typeof retrieveParticipantType,
+        transformToSections: typeof transformToSections
+    } = { retrieveParticipantType, transformToSections }
 ): void {
     if (selectedParticipantTypeId === null || selectedParticipantTypeId === '') {
+        setRequireSection(false)
         return;
     }
 
-    const participantType = retrieveParticipantType(selectedParticipantTypeId, participantTypes)
+    const participantType = deps.retrieveParticipantType(selectedParticipantTypeId, participantTypes);
 
     if (!participantType.uniformed && !participantType.out_of_district) {
         setEnableSection(false);
+        setRequireSection(false);
         setSectionList([]);
         return;
     }
 
     if (participantType.adult) {
         setEnableSection(true);
-        setSectionList(transformToSections(sections));
+        setRequireSection(false);
+        setSectionList(deps.transformToSections(sections));
         return;
     }
 
     setEnableSection(true);
-    setSectionList(transformToSections(sections, selectedParticipantTypeId));
+    setRequireSection(true);
+    setSectionList(deps.transformToSections(sections, selectedParticipantTypeId));
+}
+
+export function getCheckpoint(checkpoint_id: string, event: BookableEvent): Checkpoint | undefined {
+    return event.checkpoints.find(cp => cp.id === checkpoint_id);
 }

@@ -1,11 +1,13 @@
 # To Do
-1. Email Mailer
+1. ~~Email Mailer~~
 2. Retry failed calls
 3. ~~More responsive Design~~ 
 4. ~~Full Section List~~ 
 5. ~~Interconnected Drop-Downs: Participant~~ 
 6. ~~Questions~~
 7. ~~Auth Admin~~
+8. ~~Require Participant~~
+9. ~~Fix Server Error Rendering~~
 
 ## Post Launch
 1. Checkin Process

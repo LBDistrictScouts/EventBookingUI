@@ -36,6 +36,7 @@ export function RegisterParticipant(
     const [participantTypeList, setParticipantTypeList] = useState<CategorisedParticipantType[]>([]);
     const [sectionList, setSectionList] = useState<GroupedSection[]>(transformToSections(sections));
     const [enableSection, setEnableSection] = useState<boolean>(true);
+    const [requireSection, setRequireSection] = useState<boolean>(false);
 
     useEffect(() => {
         setParticipantTypeList(transformToTypes(participantTypes))
@@ -70,7 +71,8 @@ export function RegisterParticipant(
             sections,
             event.target.value,
             setEnableSection,
-            setSectionList
+            setSectionList,
+            setRequireSection
         )
 
         handleInputChange(event);
@@ -166,6 +168,7 @@ export function RegisterParticipant(
                         <Form.Select
                             value={selectedSection}
                             disabled={!enableSection}
+                            required={requireSection}
                             onChange={handleSectionChange}>
                             <option value="" disabled>
                                 Select a Section

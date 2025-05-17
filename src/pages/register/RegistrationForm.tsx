@@ -24,6 +24,7 @@ import Button from "react-bootstrap/Button";
 
 import InputHelper from '../../layout/text/InputHelper.tsx'
 import * as React from "react";
+import LoadingScreen from "../../LoadingScreen.tsx";
 
 
 interface RegisterFormProps {
@@ -54,12 +55,14 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
     }, []);
 
     if (loading || !event_id) {
-        return <div>Loading...</div>;
+        return <LoadingScreen />;
     }
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         event.stopPropagation();
+
+        setLoading(true);
 
         const form = event.currentTarget;
         if (!form.checkValidity()) {
@@ -81,7 +84,10 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
             participants,
         };
 
-        return await SubmitEntryData(data, setServerErrors, setSavedEntry)
+        const response = await SubmitEntryData(data, setServerErrors, setSavedEntry)
+        setLoading(false);
+
+        return response;
     };
 
     const handleAddParticipant = () => {

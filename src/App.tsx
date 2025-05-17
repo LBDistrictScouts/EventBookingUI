@@ -8,7 +8,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import {BookableEvent} from "./data/dataTypes";
 import {getBookableEvent} from "./data/backend";
-import Card from "react-bootstrap/Card";
+import LoadingScreen from "./LoadingScreen.tsx";
 
 function App(): ReactElement {
     const [loading, setLoading] = useState<boolean>(true);
@@ -25,17 +25,7 @@ function App(): ReactElement {
 
     if (loading || !evtData) {
         return (
-            <Container>
-                <Row>
-                    <Col className={'col-md-8 col-xl-6 mx-auto p-4'}>
-                        <Card>
-                            <Card.Body>
-                                <h1>Please Wait Loading...</h1>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
-            </Container>
+            <LoadingScreen />
         )
     }
 

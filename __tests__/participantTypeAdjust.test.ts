@@ -1,98 +1,92 @@
-import { participantTypeAdjust, transformToSections, retrieveParticipantType } from '../src/data/transform';
-import {baseParticipantType, baseSection} from "../__mocks__/mockData";
-import {ParticipantType} from "../src/data/dataTypes";
+import * as transform from '../src/data/transform';
+import { participantTypeAdjust } from '../src/data/transform';
+import { baseParticipantType, baseSection } from "../__mocks__/mockData";
+import { ParticipantType, Section } from "../src/data/dataTypes";
 
-
-jest.mock('../src/data/transform', () => ({
-    ...jest.requireActual('../src/data/transform'),
-    retrieveParticipantType: jest.fn(),
-    transformToSections: jest.fn(),
-}));
 
 describe('participantTypeAdjust', () => {
     let setEnableSection: jest.Mock;
     let setSectionList: jest.Mock;
+    let setSectionRequired: jest.Mock;
 
-    const participantTypes: ParticipantType[] = [
-        {...baseParticipantType, id: 'abc', uniformed: false, out_of_district: false, adult: false},
-        {...baseParticipantType, id: 'efg', uniformed: true, out_of_district: false, adult: true},
-        {...baseParticipantType, id: 'xyz', uniformed: true, out_of_district: true, adult: false},
-    ]
+    const abc = { ...baseParticipantType, id: 'abc', uniformed: false, out_of_district: false, adult: false };
+    const efg = { ...baseParticipantType, id: 'efg', uniformed: true, out_of_district: false, adult: true };
+    const xyz = { ...baseParticipantType, id: 'xyz', uniformed: true, out_of_district: true, adult: false };
+
+    const participantTypes: ParticipantType[] = [abc, efg, xyz];
+    const sections: Section[] = [{ ...baseSection, id: '101', section_name: 'Math' }];
 
     beforeEach(() => {
         setEnableSection = jest.fn();
         setSectionList = jest.fn();
-        jest.clearAllMocks(); // Clears previous mock calls
+        setSectionRequired = jest.fn();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     it('should do nothing if selectedParticipantTypeId is null or empty', () => {
-        participantTypeAdjust([], [], '', setEnableSection, setSectionList);
-        participantTypeAdjust([], [], null as unknown as string, setEnableSection, setSectionList);
+        participantTypeAdjust([], [], '', setEnableSection, setSectionList, setSectionRequired);
+        participantTypeAdjust([], [], null as unknown as string, setEnableSection, setSectionList, setSectionRequired);
 
         expect(setEnableSection).not.toHaveBeenCalled();
+        expect(setSectionRequired).toHaveBeenCalledWith(false);
         expect(setSectionList).not.toHaveBeenCalled();
     });
 
     it('should throw an error if participant type is not found', () => {
-        (retrieveParticipantType as jest.Mock).mockImplementation(() => {
+        jest.spyOn(transform, 'retrieveParticipantType').mockImplementation(() => {
             throw new Error('ParticipantType not found');
         });
 
         expect(() => {
-            participantTypeAdjust([], [], '1', setEnableSection, setSectionList);
+            participantTypeAdjust([], [], '1', setEnableSection, setSectionList, setSectionRequired);
         }).toThrow('ParticipantType with ID "1" not found.');
     });
 
     it('should disable sections if participant is neither uniformed nor out_of_district', () => {
-        (retrieveParticipantType as jest.Mock).mockReturnValue({
-            id: 'abc',
-            uniformed: false,
-            out_of_district: false,
-            adult: false,
-        });
+        const deps = {
+            retrieveParticipantType: jest.fn().mockReturnValue(abc),
+            transformToSections: jest.fn().mockReturnValue([{ group: 'Test Group', options: [] }])
+        };
 
-        participantTypeAdjust(participantTypes, [], 'abc', setEnableSection, setSectionList);
+        participantTypeAdjust(participantTypes, sections, 'abc', setEnableSection, setSectionList, setSectionRequired, deps);
 
+        expect(deps.retrieveParticipantType).toHaveBeenCalledWith('abc', participantTypes);
         expect(setEnableSection).toHaveBeenCalledWith(false);
+        expect(setSectionRequired).toHaveBeenCalledWith(false);
         expect(setSectionList).toHaveBeenCalledWith([]);
     });
 
-    it('should enable sections and transform without participantType if participant is an adult', () => {
-        const mockType = {
-            ...baseParticipantType,
-            id: 'efg',
-            uniformed: true,
-            out_of_district: false,
-            adult: true,
-        }
-        const sectionsMock = [{...baseSection, id: '101', section_name: 'Math', participant_type:  mockType}];
 
-        (retrieveParticipantType as jest.Mock).mockReturnValue(mockType);
-        (transformToSections as jest.Mock).mockReturnValue([{ group: 'A', options: [] }]);
+    it('should enable sections and NOT filter by participantTypeId if participant is an adult', () => {
+        const deps = {
+            retrieveParticipantType: jest.fn().mockReturnValue(efg),
+            transformToSections: jest.fn().mockReturnValue([{ group: 'Group A', options: [] }])
+        };
 
-        participantTypeAdjust(participantTypes, sectionsMock, 'efg', setEnableSection, setSectionList);
+        participantTypeAdjust(participantTypes, sections, 'efg', setEnableSection, setSectionList, setSectionRequired, deps);
 
+        expect(deps.retrieveParticipantType).toHaveBeenCalledWith('efg', participantTypes);
+        expect(deps.transformToSections).toHaveBeenCalledWith(sections);
         expect(setEnableSection).toHaveBeenCalledWith(true);
-        expect(transformToSections).toHaveBeenCalledWith(sectionsMock);
-        expect(setSectionList).toHaveBeenCalledWith([{ group: 'A', options: [] }]);
+        expect(setSectionRequired).toHaveBeenCalledWith(false);
+        expect(setSectionList).toHaveBeenCalledWith([{ group: 'Group A', options: [] }]);
     });
 
-    it('should enable sections and transform with participantType if not an adult but meets criteria', () => {
-        const sectionsMock = [{ ...baseSection, id: '101', section_name: 'Math' }];
+    it('should enable sections and filter by participantTypeId if non-adult and uniformed/out_of_district', () => {
+        const deps = {
+            retrieveParticipantType: jest.fn().mockReturnValue(xyz),
+            transformToSections: jest.fn().mockReturnValue([{ group: 'Group B', options: [] }])
+        };
 
-        (retrieveParticipantType as jest.Mock).mockReturnValue({
-            id: 'xyz',
-            uniformed: true,
-            out_of_district: true,
-            adult: false,
-        });
+        participantTypeAdjust(participantTypes, sections, 'xyz', setEnableSection, setSectionList, setSectionRequired, deps);
 
-        (transformToSections as jest.Mock).mockReturnValue([{ group: 'B', options: [] }]);
-
-        participantTypeAdjust(participantTypes, sectionsMock, 'abc', setEnableSection, setSectionList);
-
+        expect(deps.retrieveParticipantType).toHaveBeenCalledWith('xyz', participantTypes);
+        expect(deps.transformToSections).toHaveBeenCalledWith(sections, 'xyz');
         expect(setEnableSection).toHaveBeenCalledWith(true);
-        expect(transformToSections).toHaveBeenCalledWith(sectionsMock, '1');
-        expect(setSectionList).toHaveBeenCalledWith([{ group: 'B', options: [] }]);
+        expect(setSectionRequired).toHaveBeenCalledWith(true);
+        expect(setSectionList).toHaveBeenCalledWith([{ group: 'Group B', options: [] }]);
     });
 });

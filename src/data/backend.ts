@@ -2,9 +2,11 @@ import {
     ParticipantTypesDataResponse,
     Section,
     SectionsDataResponse, EntrySubmissionResponse,
-    ServerValidationErrorList, doesNotHaveKeyInErrors, SavedEntry, BookableEventResponse, BookableEvent, ParticipantType
+    ServerValidationErrorList, doesNotHaveKeyInErrors,
+    SavedEntry, Lookup,
+    BookableEventResponse, BookableEvent, ParticipantType, Entry, EntryResponse, ValidCheckInRequest
 } from "./dataTypes";
-import {looseInstanceOf, assertReadableResponse, JsonValue, isJsonObject} from "./utilities";
+import {looseInstanceOf, assertReadableResponse, JsonValue, isJsonObject, setValidCookie} from "./utilities";
 import {getCookie} from "typescript-cookie";
 
 let host = 'https://' + window.location.host;
@@ -182,25 +184,35 @@ export async function SubmitEntryData(data: object, setServerErrors: CallableFun
 }
 
 
-export function handleFieldError(fieldName: string, serverErrors: ServerValidationErrorList): string | undefined
-{
+export function handleFieldError(fieldName: string, serverErrors: ServerValidationErrorList): string | undefined {
     if (doesNotHaveKeyInErrors(fieldName, serverErrors)) {
-        // console.log('Field: ', fieldName, 'Success')
         return undefined;
     }
 
     const errors = serverErrors[fieldName];
 
-    if (typeof errors === "object") {
-        Object.values(errors).forEach((err) => {
-            console.error('Field: ', fieldName, err)
-            return err;
-        })
+    const collectedErrors = collectAllErrorStrings(errors);
 
-        return ;
+    return collectedErrors.length > 0 ? collectedErrors.join('. ') + '.' : undefined;
+}
+
+// Recursive helper to collect all error strings from a nested object
+function collectAllErrorStrings(
+    errors: { [key: string]: string | ServerValidationErrorList }
+): string[] {
+    let result: string[] = [];
+
+    for (const key in errors) {
+        const value = errors[key];
+        if (typeof value === "string") {
+            result.push(value);
+        } else if (typeof value === "object" && value !== null) {
+            // Safe to pass value as ServerValidationErrorList since typeof "string" is handled above
+            result = result.concat(collectAllErrorStrings(value as { [key: string]: string | ServerValidationErrorList }));
+        }
     }
 
-    return errors;
+    return result;
 }
 
 export function getParticipantServerErrors(participantIndex: number, serverErrors: ServerValidationErrorList): ServerValidationErrorList {
@@ -212,4 +224,114 @@ export function getParticipantServerErrors(participantIndex: number, serverError
     }
 
     return {}
+}
+
+export async function lookupEntry(lookup: Lookup): Promise<Entry> {
+    const url = host + '/lookup.json';
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(lookup),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!isJsonObject<EntryResponse>(data)) {
+            if (process.env.NODE_ENV === 'development') {
+                console.debug('Lookup response data:', data);
+            }
+
+            throw new Error(data?.message || 'Invalid response from server.');
+        }
+
+        return data.entry;
+    } catch (error) {
+        console.error('Lookup failed:', error);
+        throw error;
+    }
+}
+
+
+export function handleReferenceNumber(referenceNumber: string): string {
+    referenceNumber = referenceNumber.replace(/^([A-Z]+[0-9]*-?)/gi, '');
+
+    if (/^[0-9]{1,3}$/.test(referenceNumber)) {
+        console.debug('Lookup passed:', referenceNumber);
+        return referenceNumber;
+    }
+
+    return referenceNumber;
+}
+
+export function storeEntry(entry: Entry): void {
+    setValidCookie('entry', JSON.stringify(entry));
+}
+
+export function getSavedEntry(): Entry|undefined {
+    const entryCookie = getCookie('entry')
+
+    if (!entryCookie) {
+        return undefined;
+    }
+
+    const entryValue = JSON.parse(entryCookie);
+
+    if (isJsonObject<Entry>(entryValue)) {
+        return entryValue;
+    }
+
+    return undefined;
+}
+
+export function storeEvent(event: BookableEvent): void {
+    setValidCookie('event', JSON.stringify(event));
+}
+
+export function getSavedEvent(): BookableEvent|undefined {
+    const eventCookie = getCookie('event')
+
+    if (!eventCookie) {
+        return undefined;
+    }
+
+    const eventValue = JSON.parse(eventCookie);
+
+    if (isJsonObject<BookableEvent>(eventValue)) {
+        return eventValue;
+    }
+
+    return undefined;
+}
+
+
+
+export async function submitCheckIn(check_in_data: ValidCheckInRequest) {
+    const url = host + '/check-in.json';
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(check_in_data),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}`);
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Lookup failed:', error);
+        throw error;
+    }
 }

@@ -17,6 +17,10 @@
   object-fit: cover;
 }
 
+.loading-icon {
+  max-width: 20%;
+}
+
 ol {
   text-align: start;
   padding-left: 1rem;
@@ -11927,7 +11931,6 @@ textarea.form-control-lg {
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
