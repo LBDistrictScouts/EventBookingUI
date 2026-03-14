@@ -6,7 +6,7 @@ export function validateString(input: unknown): input is string {
 }
 
 
-function getDefaultCookieOpts(): object {
+function getDefaultCookieOpts(): Record<string, unknown> {
     if (window.location.href.includes('localhost')) {
         return {sameSite: 'None', secure: false, domain: 'localhost', path: '/'};
     }
@@ -14,7 +14,7 @@ function getDefaultCookieOpts(): object {
     return {sameSite: 'None', secure: true, path: '/'}
 }
 
-const defaultCookieOpts: object = getDefaultCookieOpts();
+const defaultCookieOpts: Record<string, unknown> = getDefaultCookieOpts();
 
 
 export function getOrMakeCookie(cookie_key: string, cookie_generator: () => string): string {
@@ -39,10 +39,14 @@ function ensureString(input: number|string|undefined|object): string {
     return typeof input === "string" ? input : JSON.stringify(input);
 }
 
-export function setValidCookie(cookie_key: string, cookie_value: number|string|undefined|object, attributes: object = {}): string {
-    attributes = { ...defaultCookieOpts, ...attributes }
+export function setValidCookie(
+    cookie_key: string,
+    cookie_value: number|string|undefined|object,
+    attributes: Record<string, unknown> = {},
+): string {
+    const mergedAttributes = { ...defaultCookieOpts, ...attributes }
 
-    return setCookie(cookie_key, ensureString(cookie_value), attributes);
+    return setCookie(cookie_key, ensureString(cookie_value), mergedAttributes);
 }
 
 
@@ -83,17 +87,20 @@ export function assertReadableResponse(response: Response) {
 }
 
 
-type Constructor<T extends {} = {}> = new (...args: any[]) => T
+type Constructor<T extends object = object> = new (...args: unknown[]) => T
 
-export function looseInstanceOf<T extends {}>(input: unknown, expected: Constructor<T>): input is T {
+export function looseInstanceOf<T extends object>(input: unknown, expected: Constructor<T>): input is T {
     if (input == null) {
         return false
     }
 
     try {
+        const prototype = Object.getPrototypeOf(input) as { [Symbol.toStringTag]?: string } | null;
+        const expectedPrototype = expected.prototype as { [Symbol.toStringTag]?: string };
+
         return (
             input instanceof expected ||
-            Object.getPrototypeOf(input)[Symbol.toStringTag] === expected.prototype[Symbol.toStringTag]
+            prototype?.[Symbol.toStringTag] === expectedPrototype[Symbol.toStringTag]
         )
     } catch {
         return false

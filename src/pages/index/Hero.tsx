@@ -3,16 +3,15 @@ import {Container, Image} from "react-bootstrap";
 import {BookableEvent} from "../../data/dataTypes.ts";
 import dayjs from "dayjs";
 
+interface FmtProps {
+    dt: string;
+}
+
+function FormattedDate({ dt }: FmtProps): ReactElement {
+    return <span>{dayjs(dt).format("DD-MMM-YY")}</span>;
+}
+
 export function Hero({bookableEvent}: {bookableEvent: BookableEvent}): ReactElement {
-
-    interface FmtProps {
-        dt: string;
-    }
-
-    const FormattedDate = ({ dt }: FmtProps) => {
-        return ( <span>{dayjs(dt).format("DD-MMM-YY")}</span> );
-    };
-
     return (
         <Container className={'h-100'} >
             <div className="row h-100">

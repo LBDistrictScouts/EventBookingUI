@@ -35,7 +35,6 @@ function ClearButton({setEntry, buttonText = 'Refresh Team Members'}: ClearButto
     };
 
     const clearCookies = () => {
-        console.log('Save Cleared!');
         removeEntryCookies();
         setEntry(undefined);
     };

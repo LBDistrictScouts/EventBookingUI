@@ -166,9 +166,6 @@ export async function SubmitEntryData(data: object, setServerErrors: CallableFun
     }
 
     if (response.ok && result.success) {
-        console.log("Success:", result.message);
-        // Handle success (e.g., show a success message or redirect)
-
         if (!isJsonObject<SavedEntry>(result.entry)) {
             throw new Error('Entry is invalid.')
         }
@@ -249,10 +246,6 @@ export async function lookupEntry(lookup: Lookup): Promise<Entry|false> {
         const data = await response.json();
 
         if (!isJsonObject<EntryResponse>(data)) {
-            if (process.env.NODE_ENV === 'development') {
-                console.debug('Lookup response data:', data);
-            }
-
             throw new Error(data?.message || 'Invalid response from server.');
         }
 
@@ -268,7 +261,6 @@ export function handleReferenceNumber(referenceNumber: string): string {
     referenceNumber = referenceNumber.replace(/^([A-Z]+[0-9]*-?)/gi, '');
 
     if (/^[0-9]{1,3}$/.test(referenceNumber)) {
-        console.debug('Lookup passed:', referenceNumber);
         return referenceNumber;
     }
 

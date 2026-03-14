@@ -16,6 +16,22 @@ interface RegisterParticipantParams {
     removeParticipant: () => void;
 }
 
+function getTypeLabel(
+    participantTypeList: CategorisedParticipantType[],
+    participantTypeId: string,
+): string {
+    for (const category of participantTypeList) {
+        const pType = category.options.find(
+            (option) => option.id === participantTypeId
+        );
+        if (pType) {
+            return pType.participant_type;
+        }
+    }
+
+    return "";
+}
+
 
 export function RegisterParticipant(
     {
@@ -51,32 +67,23 @@ export function RegisterParticipant(
 
     useEffect(() => {
         if (selectedType) {
-            setSelectedTypeLabel(getTypeLabel(selectedType));
+            setSelectedTypeLabel(getTypeLabel(participantTypeList, selectedType));
         }
     }, [selectedType, participantTypeList]);
 
-    const getTypeLabel = (participantTypeId: string): string => {
-        for (const category of participantTypeList) {
-            const pType = category.options.find(
-                (option) => option.id === participantTypeId
-            );
-            if (pType) {
-                return pType.participant_type;
-            }
-        }
-
-        return "";
-    }
-
-    const handleInputChange = (event: ChangeEvent<HTMLSelectElement|HTMLInputElement>) => {
-        const { name, value } = event.target;
-        const updatedParticipant = { ...participant, [name]: value };
+    const updateParticipantField = <K extends keyof Participant>(
+        field: K,
+        value: Participant[K],
+    ) => {
+        const updatedParticipant = { ...participant, [field]: value };
         onParticipantChange(participantIdx, updatedParticipant);
     };
 
     const handleTypeChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        participant.participant_type_id = event.target.value;
-        setSelectedTypeLabel(getTypeLabel(event.target.value));
+        const participantTypeId = event.target.value;
+        updateParticipantField('participant_type_id', participantTypeId);
+
+        setSelectedTypeLabel(getTypeLabel(participantTypeList, event.target.value));
         setSelectedType(event.target.value);
 
         participantTypeAdjust(
@@ -87,29 +94,21 @@ export function RegisterParticipant(
             setSectionList,
             setRequireSection
         )
-
-        handleInputChange(event);
     };
 
     const handleSectionChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        participant.section_id = event.target.value;
+        updateParticipantField('section_id', event.target.value);
         setSelectedSection(event.target.value);
-
-        handleInputChange(event);
     };
 
     const handleFirstNameChange = (event: ChangeEvent<HTMLInputElement>) => {
-        participant.first_name = event.target.value;
+        updateParticipantField('first_name', event.target.value);
         setFirstName(event.target.value);
-
-        handleInputChange(event);
     }
 
     const handleLastNameChange = (event: ChangeEvent<HTMLInputElement>) => {
-        participant.last_name = event.target.value;
+        updateParticipantField('last_name', event.target.value);
         setLastName(event.target.value);
-
-        handleInputChange(event);
     }
 
     return (
