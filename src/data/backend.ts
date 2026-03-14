@@ -7,7 +7,7 @@ import {
     BookableEventResponse, BookableEvent, ParticipantType, Entry, EntryResponse, ValidCheckInRequest
 } from "./dataTypes";
 import {looseInstanceOf, assertReadableResponse, JsonValue, isJsonObject, setValidCookie} from "./utilities";
-import {getCookie} from "typescript-cookie";
+import {getCookie, removeCookie} from "typescript-cookie";
 
 let host = 'https://' + window.location.host;
 
@@ -226,7 +226,7 @@ export function getParticipantServerErrors(participantIndex: number, serverError
     return {}
 }
 
-export async function lookupEntry(lookup: Lookup): Promise<Entry> {
+export async function lookupEntry(lookup: Lookup): Promise<Entry|false> {
     const url = host + '/lookup.json';
 
     try {
@@ -237,6 +237,10 @@ export async function lookupEntry(lookup: Lookup): Promise<Entry> {
             },
             body: JSON.stringify(lookup),
         });
+
+        if (response.status === 404) {
+            return false;
+        }
 
         if (!response.ok) {
             throw new Error(`Server responded with ${response.status}`);
@@ -272,11 +276,37 @@ export function handleReferenceNumber(referenceNumber: string): string {
 }
 
 export function storeEntry(entry: Entry): void {
+    removeLegacyPathScopedEntryCookies();
     setValidCookie('entry', JSON.stringify(entry));
 }
 
-export function getSavedEntry(): Entry|undefined {
-    const entryCookie = getCookie('entry')
+export function storeSavedEntry(entry: SavedEntry): void {
+    removeLegacyPathScopedEntryCookies();
+    setValidCookie('entry', JSON.stringify(entry));
+}
+
+function removeLegacyPathScopedEntryCookies() {
+    const keys = ['entry', 'saved-entry'];
+    const variants = [
+        { path: '/check-in' },
+        { path: '/edit' },
+        { path: '/check-in', domain: 'localhost' },
+        { path: '/edit', domain: 'localhost' },
+    ];
+
+    for (const key of keys) {
+        for (const attrs of variants) {
+            removeCookie(key, attrs);
+        }
+    }
+}
+
+export function getSavedEntry(): SavedEntry|undefined {
+    // Cleanup old path-scoped cookies so /edit and /check-in share the same root cookie.
+    removeLegacyPathScopedEntryCookies();
+
+    // Prefer the unified key, but fallback to legacy key used by older registration flows.
+    const entryCookie = getCookie('entry') ?? getCookie('saved-entry')
 
     if (!entryCookie) {
         return undefined;
@@ -284,7 +314,10 @@ export function getSavedEntry(): Entry|undefined {
 
     const entryValue = JSON.parse(entryCookie);
 
-    if (isJsonObject<Entry>(entryValue)) {
+    if (isJsonObject<SavedEntry>(entryValue)) {
+        // Migrate legacy cookie key so edit/check-in/register all share one source.
+        setValidCookie('entry', entryValue);
+        removeCookie('saved-entry');
         return entryValue;
     }
 

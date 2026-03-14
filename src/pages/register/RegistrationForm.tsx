@@ -1,12 +1,12 @@
 import PrivacyStatement from "./PrivacyStatement.tsx";
-import {Accordion, Form, FormControl} from "react-bootstrap";
+import {Accordion, Alert, Form, FormControl} from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
 import { useParams } from "react-router";
 
 import {
     ParticipantType,
     Section,
-    Participant, SavedEntry,
+    Participant, SavedEntry, SavedParticipant,
     ServerValidationErrorList
 } from '../../data/dataTypes.ts'
 import {RegisterParticipant} from './RegisterParticipant.tsx'
@@ -29,18 +29,43 @@ import LoadingScreen from "../../LoadingScreen.tsx";
 
 interface RegisterFormProps {
     setSavedEntry: (entry: SavedEntry) => void;
+    initialEntry?: SavedEntry;
+    mode?: "create" | "edit";
+    eventIdOverride?: string;
 }
 
-function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
+function mapSavedParticipantToParticipant(participant: SavedParticipant): Participant {
+    return {
+        access_key: participant.id,
+        first_name: participant.first_name ?? "",
+        last_name: participant.last_name ?? "",
+        participant_type_id: participant.participant_type_id ?? undefined,
+        section_id: participant.section_id ?? undefined,
+        participant_type: undefined,
+        section: undefined,
+    };
+}
+
+function RegistrationForm ({
+    setSavedEntry,
+    initialEntry,
+    mode = "create",
+    eventIdOverride,
+}: RegisterFormProps) {
     const [validated, setValidated] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
-    const [participants, setParticipants] = useState<Participant[]>([]);
+    const [participants, setParticipants] = useState<Participant[]>(
+        initialEntry ? initialEntry.participants.map(mapSavedParticipantToParticipant) : []
+    );
     const [participantTypes, setParticipantTypes] = useState<ParticipantType[]>([]);
     const [sections, setSections] = useState<Section[]>([]);
-    const [entryName, setEntryName] = useState<string>("");
-    const [entryEmail, setEntryEmail] = useState<string>("");
-    const [entryMobile, setEntryMobile] = useState<string>("");
+    const [entryName, setEntryName] = useState<string>(initialEntry?.entry_name ?? "");
+    const [entryEmail, setEntryEmail] = useState<string>(initialEntry?.entry_email ?? "");
+    const [entryMobile, setEntryMobile] = useState<string>(initialEntry?.entry_mobile ?? "");
+    const [privacyAcknowledged, setPrivacyAcknowledged] = useState<boolean>(false);
+    const [singleParticipantWarningVisible, setSingleParticipantWarningVisible] = useState<boolean>(false);
+    const [singleParticipantWarningDismissed, setSingleParticipantWarningDismissed] = useState<boolean>(false);
     const [serverErrors, setServerErrors] = useState<ServerValidationErrorList>({}); // Store server errors
 
     const { event_id } = useParams<{ event_id: string }>();
@@ -54,15 +79,22 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading || !event_id) {
+    useEffect(() => {
+        if (participants.length !== 1) {
+            setSingleParticipantWarningVisible(false);
+            setSingleParticipantWarningDismissed(false);
+        }
+    }, [participants.length]);
+
+    const targetEventId = eventIdOverride ?? event_id;
+
+    if (loading || !targetEventId) {
         return <LoadingScreen />;
     }
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         event.stopPropagation();
-
-        setLoading(true);
 
         const form = event.currentTarget;
         if (!form.checkValidity()) {
@@ -75,17 +107,25 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
             setErrors(["At least one participant is required."]);
             return;
         }
+        if (participants.length === 1 && !singleParticipantWarningDismissed) {
+            setSingleParticipantWarningVisible(true);
+            return;
+        }
 
         const data: Record<string, Participant[]|string|FormDataEntryValue> = {
-            event_id: event_id,
+            event_id: targetEventId,
             entry_name: entryName,
             entry_email: entryEmail,
             entry_mobile: entryMobile,
             participants,
         };
+        if (mode === "edit" && initialEntry?.id) {
+            data.entry_id = initialEntry.id;
+        }
 
+        setLoading(true);
         const response = await SubmitEntryData(data, setServerErrors, setSavedEntry)
-        setLoading(false);
+            .finally(() => setLoading(false));
 
         return response;
     };
@@ -116,19 +156,10 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
 
     return (
         <Form validated={validated} onSubmit={handleSubmit} className={'user'}>
-            {/* Display custom validation errors */}
-            {errors.length > 0 && (
-                <div className="alert alert-danger">
-                    <ul>
-                        {errors.map((error, index) => (
-                            <li className={'alert-warning'} key={index}>{error}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
             <div className="mb-3">
                 <FormControl
                     required
+                    value={entryName}
                     onChange={(e) => setEntryName(e.target.value)}
                     isInvalid={!!handleFieldError("entry_name", serverErrors)}
                     className="form-control-user"
@@ -142,38 +173,44 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
                 </Form.Control.Feedback>
                 <InputHelper text={'All members of your walking party must be registered on the same booking form.'} />
             </div>
-            <div className="mb-3">
-                <FormControl
-                    required
-                    onChange={(e) => setEntryEmail(e.target.value)}
-                    isInvalid={!!handleFieldError("entry_email", serverErrors)}
-                    className="form-control-user"
-                    type={'email'}
-                    aria-describedby="emailHelp"
-                    placeholder="Email Address"
-                    name="entry_email"
-                />
-                <Form.Control.Feedback type="invalid">
-                    {handleFieldError("entry_email", serverErrors)}
-                </Form.Control.Feedback>
-                <InputHelper text={'We need an email to send your booking confirmation and security code. We will also use it to send a reminder just before the event.'} />
-            </div>
-            <div className="mb-3">
-                <FormControl
-                    id={'entry_mobile'}
-                    required
-                    onChange={(e) => setEntryMobile(e.target.value)}
-                    isInvalid={!!handleFieldError("entry_mobile", serverErrors)}
-                    className="form-control-user"
-                    type={'tel'}
-                    placeholder="Mobile Number"
-                    name={'entry_mobile'}
-                />
-                <Form.Control.Feedback type="invalid">
-                    {handleFieldError("entry_mobile", serverErrors)}
-                </Form.Control.Feedback>
-                <InputHelper text={'We need a contact phone number for on the day, in case you are late back or there is an issue.'} />
-            </div>
+            {mode === "create" && (
+                <>
+                    <div className="mb-3">
+                        <FormControl
+                            required
+                            value={entryEmail}
+                            onChange={(e) => setEntryEmail(e.target.value)}
+                            isInvalid={!!handleFieldError("entry_email", serverErrors)}
+                            className="form-control-user"
+                            type={'email'}
+                            aria-describedby="emailHelp"
+                            placeholder="Email Address"
+                            name="entry_email"
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {handleFieldError("entry_email", serverErrors)}
+                        </Form.Control.Feedback>
+                        <InputHelper text={'We need an email to send your booking confirmation and security code. We will also use it to send a reminder just before the event.'} />
+                    </div>
+                    <div className="mb-3">
+                        <FormControl
+                            id={'entry_mobile'}
+                            required
+                            value={entryMobile}
+                            onChange={(e) => setEntryMobile(e.target.value)}
+                            isInvalid={!!handleFieldError("entry_mobile", serverErrors)}
+                            className="form-control-user"
+                            type={'tel'}
+                            placeholder="Mobile Number"
+                            name={'entry_mobile'}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            {handleFieldError("entry_mobile", serverErrors)}
+                        </Form.Control.Feedback>
+                        <InputHelper text={'We need a contact phone number for on the day, in case you are late back or there is an issue.'} />
+                    </div>
+                </>
+            )}
             <Row>
                 <Col className="text-end mb-3">
                     <Button variant={'outline-secondary'} onClick={handleAddParticipant} size={'sm'}>
@@ -195,10 +232,48 @@ function RegistrationForm ({setSavedEntry}: RegisterFormProps) {
                     />
                 ))}
             </Accordion>
-            <PrivacyStatement />
+            <PrivacyStatement
+                acknowledged={privacyAcknowledged}
+                onAcknowledge={() => setPrivacyAcknowledged(true)}
+            />
+            {/* Display custom validation errors */}
+            {errors.length > 0 && (
+                <>
+                    {errors.map((error, index) => (
+                        <div className="alert alert-danger text-center mb-3" role="alert" key={index}>
+                            <p className="mb-0">{error}</p>
+                        </div>
+                    ))}
+                </>
+            )}
+            {singleParticipantWarningVisible && (
+                <Alert
+                    dismissible
+                    variant="warning"
+                    onClose={() => {
+                        setSingleParticipantWarningVisible(false);
+                        setSingleParticipantWarningDismissed(true);
+                    }}
+                >
+                    <p>This registration contains only one participant.</p>
+
+                    <p>Please register as a team, this will mean that you can check in together, rather than having to do so individually.</p>
+
+                    <p>Only adults can walk alone, all young people must be registered as part of a team.</p>
+
+                    <p>
+                        If you want to add a participant after registering,{" "}
+                        <a href="/edit">please edit the registration</a>.
+                    </p>
+                </Alert>
+            )}
             <div className="my-3">
-                <button className="btn btn-primary d-block btn-user w-100" type="submit">Register
-                    for Walk
+                <button
+                    className="btn btn-primary d-block btn-user w-100"
+                    type="submit"
+                    disabled={!privacyAcknowledged}
+                >
+                    {mode === "edit" ? "Save Registration Changes" : "Register for Walk"}
                 </button>
             </div>
         </Form>

@@ -8,10 +8,10 @@ export function validateString(input: unknown): input is string {
 
 function getDefaultCookieOpts(): object {
     if (window.location.href.includes('localhost')) {
-        return {sameSite: 'None', secure: false, domain: 'localhost'};
+        return {sameSite: 'None', secure: false, domain: 'localhost', path: '/'};
     }
 
-    return {sameSite: 'None', secure: true}
+    return {sameSite: 'None', secure: true, path: '/'}
 }
 
 const defaultCookieOpts: object = getDefaultCookieOpts();
@@ -40,7 +40,7 @@ function ensureString(input: number|string|undefined|object): string {
 }
 
 export function setValidCookie(cookie_key: string, cookie_value: number|string|undefined|object, attributes: object = {}): string {
-    attributes = defaultCookieOpts || attributes
+    attributes = { ...defaultCookieOpts, ...attributes }
 
     return setCookie(cookie_key, ensureString(cookie_value), attributes);
 }

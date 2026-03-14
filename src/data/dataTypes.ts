@@ -41,6 +41,7 @@ export interface SavedParticipant extends BaseParticipant {
     entry_id: string;
     created: string;
     modified: string;
+    full_name: string;
 }
 
 export interface Participant extends BaseParticipant {
@@ -84,7 +85,7 @@ export interface SavedEntry extends BaseEntry {
     id: string;
     security_code: string;
     reference_number: number;
-    event: BookableEvent;
+    event_id: string;
     created: string;
     modified: string;
     participants: SavedParticipant[];

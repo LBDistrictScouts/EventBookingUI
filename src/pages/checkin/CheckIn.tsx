@@ -1,7 +1,7 @@
 import {ReactElement, useEffect, useState} from "react";
 import LookupForm from "./LookupForm.tsx";
 import CheckInForm from "./CheckInForm.tsx";
-import {BookableEvent, Checkpoint, Entry} from "../../data/dataTypes.ts"
+import {BookableEvent, Checkpoint, SavedEntry} from "../../data/dataTypes.ts"
 import Confirmation from "./Confirmation.tsx";
 import {getBookableEvent, getSavedEntry, getSavedEvent} from "../../data/backend.ts";
 import {Alert} from "react-bootstrap";
@@ -14,11 +14,12 @@ import LoadingScreen from "../../LoadingScreen.tsx";
 function CheckIn(): ReactElement {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string|undefined>();
+    const [invalid, setInvalid] = useState<string>('');
 
     const { checkpoint_id } = useParams<{ checkpoint_id: string }>();
     const [checkpoint, setCheckpoint] = useState<Checkpoint>()
     const [event, setEvent] = useState<BookableEvent|undefined>(getSavedEvent());
-    const [entry, setEntry] = useState<Entry|undefined>(getSavedEntry());
+    const [entry, setEntry] = useState<SavedEntry|undefined>(getSavedEntry());
     const [complete, setComplete] = useState(false);
 
     useEffect(() => {
@@ -59,12 +60,25 @@ function CheckIn(): ReactElement {
     }
 
     if (entry && event && checkpoint) {
-        return <CheckInForm entry={entry} setComplete={setComplete} setLoading={setLoading} checkpoint={checkpoint} setError={setError} />
+        return <CheckInForm
+            entry={entry}
+            setComplete={setComplete}
+            setLoading={setLoading}
+            checkpoint={checkpoint}
+            setEntry={setEntry}
+            setError={setError}
+        />
     }
 
 
     if (checkpoint && event) {
-        return <LookupForm setLoading={setLoading} setEntry={setEntry} checkpoint={checkpoint}/>
+        return <LookupForm
+            setLoading={setLoading}
+            setEntry={setEntry}
+            checkpoint={checkpoint}
+            invalid={invalid}
+            setInvalid={setInvalid}
+        />
     }
 
     return (

@@ -6,28 +6,14 @@ import Col from "react-bootstrap/Col";
 import RegistrationForm from "./RegistrationForm.tsx";
 import {SavedEntry} from "../../data/dataTypes.ts";
 import {isJsonObject, setValidCookie} from "../../data/utilities.ts";
-import {getCookie} from "typescript-cookie";
+import {getSavedEntry} from "../../data/backend.ts";
 
 function Register(): ReactElement {
-    const getSavedEntry = (): undefined|SavedEntry => {
-        let cookieEntry: string|undefined = getCookie('saved-entry');
-
-        if (typeof cookieEntry === 'string') {
-            cookieEntry = JSON.parse(cookieEntry);
-        }
-
-        if (isJsonObject<SavedEntry>(cookieEntry)) {
-            return cookieEntry;
-        }
-
-        return
-    }
-
     const [savedEntry, setSavedEntry] = useState<SavedEntry|undefined>(getSavedEntry());
 
     useEffect(() => {
         if (isJsonObject<SavedEntry>(savedEntry)) {
-            setValidCookie('saved-entry', savedEntry)
+            setValidCookie('entry', savedEntry)
         }
     }, [savedEntry])
 
@@ -51,7 +37,7 @@ function Register(): ReactElement {
                                             <div className="card-body">
                                                 <div className="row">
                                                     <div className="col-sm-7">
-                                                        <p className="fs-1">{savedEntry.event.booking_code}-{savedEntry.reference_number}</p>
+                                                        <p className="fs-1">{savedEntry.reference_number}</p>
                                                         <p>Booking Reference</p>
                                                     </div>
                                                     <div className="col">
@@ -64,6 +50,10 @@ function Register(): ReactElement {
                                         <p className="card-text">You will receive an email confirming the above
                                             information. You will need the booking reference and security code to
                                             register on the day of the walk.</p>
+                                        <p className="card-text mb-0">
+                                            Need to make changes?{" "}
+                                            <a href={`/edit/${savedEntry.id}`}>Edit this registration</a>.
+                                        </p>
                                     </div>
                                 </div>
                             </div>

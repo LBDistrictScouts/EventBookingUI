@@ -1,19 +1,21 @@
 import {FormEvent, ReactElement, useState} from "react";
 import {Alert, Card, Col, Container, Form, FormCheck, Row} from "react-bootstrap";
-import {Checkpoint, Entry} from "../../data/dataTypes.ts";
+import {Checkpoint, SavedEntry} from "../../data/dataTypes.ts";
 import CheckpointHeader from "./CheckpointHeader.tsx";
 import {submitCheckIn} from "../../data/backend.ts";
+import ClearButton from "./ClearButton.tsx";
 
 interface CheckInFormProps {
     setLoading: CallableFunction
     setComplete: CallableFunction
     setError: CallableFunction
-    entry: Entry
+    entry: SavedEntry
+    setEntry: CallableFunction
     checkpoint: Checkpoint;
 }
 
 
-function CheckInForm({ setLoading, setComplete, setError, entry, checkpoint}: CheckInFormProps): ReactElement {
+function CheckInForm({ setLoading, setComplete, setError, entry, setEntry,checkpoint}: CheckInFormProps): ReactElement {
     const [participantList, setParticipantList] = useState<string[]>([]);
     const [warning, setWarning] = useState<string>('');
 
@@ -55,6 +57,8 @@ function CheckInForm({ setLoading, setComplete, setError, entry, checkpoint}: Ch
         }
     };
 
+
+
     return (
         <Container>
             <Row className={'justify-content-center'}>
@@ -94,10 +98,16 @@ function CheckInForm({ setLoading, setComplete, setError, entry, checkpoint}: Ch
                                             <div className="mb-3">
                                                 <div className="custom-control custom-checkbox small"></div>
                                             </div>
-                                            <button className="btn btn-primary d-block btn-user w-100"
-                                                    type="submit">Submit
+                                            <button className="btn btn-primary d-block btn-user w-100" type="submit">
+                                                Submit
                                             </button>
                                         </Form>
+
+                                        <div className={'my-5'} >
+                                            <hr/>
+                                        </div>
+
+                                        <ClearButton setEntry={setEntry} />
                                     </div>
                                 </Col>
                                 <Col className="d-flex">

@@ -28,11 +28,11 @@ export function RegisterParticipant(
         removeParticipant,
     }: RegisterParticipantParams): ReactElement
 {
-    const [selectedType, setSelectedType] = useState<string>("");
+    const [selectedType, setSelectedType] = useState<string>(participant.participant_type_id ?? "");
     const [selectedTypeLabel, setSelectedTypeLabel] = useState<string>("");
-    const [selectedSection, setSelectedSection] = useState<string>("");
-    const [firstName, setFirstName] = useState<string>("");
-    const [lastName, setLastName] = useState<string>("");
+    const [selectedSection, setSelectedSection] = useState<string>(participant.section_id ?? "");
+    const [firstName, setFirstName] = useState<string>(participant.first_name ?? "");
+    const [lastName, setLastName] = useState<string>(participant.last_name ?? "");
     const [participantTypeList, setParticipantTypeList] = useState<CategorisedParticipantType[]>([]);
     const [sectionList, setSectionList] = useState<GroupedSection[]>(transformToSections(sections));
     const [enableSection, setEnableSection] = useState<boolean>(true);
@@ -41,6 +41,19 @@ export function RegisterParticipant(
     useEffect(() => {
         setParticipantTypeList(transformToTypes(participantTypes))
     }, [participantTypes]);
+
+    useEffect(() => {
+        setFirstName(participant.first_name ?? "");
+        setLastName(participant.last_name ?? "");
+        setSelectedType(participant.participant_type_id ?? "");
+        setSelectedSection(participant.section_id ?? "");
+    }, [participant]);
+
+    useEffect(() => {
+        if (selectedType) {
+            setSelectedTypeLabel(getTypeLabel(selectedType));
+        }
+    }, [selectedType, participantTypeList]);
 
     const getTypeLabel = (participantTypeId: string): string => {
         for (const category of participantTypeList) {
@@ -146,6 +159,7 @@ export function RegisterParticipant(
                     <Col className={'col-md-6 col-12 py-3 px-0 px-md-3'}>
                         <Form.Control
                             isInvalid={!!handleFieldError('first_name', serverErrors)}
+                            value={firstName}
                             placeholder={'First Name'}
                             required id={'participants.' + participantIdx.toString() + '.first_name'}
                             onChange={handleFirstNameChange}
@@ -155,6 +169,7 @@ export function RegisterParticipant(
                     <Col className={'col-md-6 col-12 py-3 px-0 px-md-3'}>
                         <Form.Control
                             isInvalid={!!handleFieldError('last_name', serverErrors)}
+                            value={lastName}
                             placeholder={'Last Name'}
                             required id={'participants.' + participantIdx.toString() + '.last_name'}
                             onChange={handleLastNameChange}
@@ -197,4 +212,3 @@ export function RegisterParticipant(
     )
 
 }
-
