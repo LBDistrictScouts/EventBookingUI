@@ -87,7 +87,8 @@ export function assertReadableResponse(response: Response) {
 }
 
 
-type Constructor<T extends object = object> = new (...args: unknown[]) => T
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Constructor<T extends object = object> = abstract new (...args: any[]) => T
 
 export function looseInstanceOf<T extends object>(input: unknown, expected: Constructor<T>): input is T {
     if (input == null) {
