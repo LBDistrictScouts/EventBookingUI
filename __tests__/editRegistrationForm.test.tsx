@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from "react-router";
 import { getCookie } from "typescript-cookie";
 import EditRegister from "../src/pages/edit/EditRegister";
 import { getParticipantTypes, getSections, SubmitEntryData } from "../src/data/backend";
+import { SavedEntry } from "../src/data/dataTypes";
 
 jest.mock("uuid", () => ({
     v4: () => "mock-access-key",
@@ -18,7 +19,7 @@ jest.mock("../src/data/backend", () => {
     };
 });
 
-const savedEntry = {
+const savedEntry: SavedEntry = {
     id: "entry-123",
     event_id: "event-123",
     entry_name: "Alpha Team",
@@ -26,18 +27,6 @@ const savedEntry = {
     entry_mobile: "07000111222",
     security_code: "SEC123",
     reference_number: 101,
-    event: {
-        id: "event-123",
-        event_name: "Greenway Walk",
-        event_description: "",
-        booking_code: "GW",
-        start_time: "",
-        bookable: true,
-        finished: false,
-        checkpoints: [],
-        questions: [],
-        sections: [],
-    },
     created: "",
     modified: "",
     participants: [
@@ -46,6 +35,7 @@ const savedEntry = {
             entry_id: "entry-123",
             first_name: "Sam",
             last_name: "Walker",
+            full_name: "Sam Walker",
             participant_type_id: undefined,
             section_id: undefined,
             created: "",
@@ -56,6 +46,7 @@ const savedEntry = {
             entry_id: "entry-123",
             first_name: "Alex",
             last_name: "Hill",
+            full_name: "Alex Hill",
             participant_type_id: undefined,
             section_id: undefined,
             created: "",

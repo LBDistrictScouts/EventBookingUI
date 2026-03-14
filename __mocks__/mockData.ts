@@ -5,16 +5,16 @@ export const baseType: Omit<ParticipantType, "id" | "participant_type" | "catego
     uniformed: true,
     out_of_district: false,
     deleted: null,
-    modified: null,
-    created: null,
+    modified: "",
+    created: "",
 };
 
 export const baseGroup: Group = {
     id: 'abcd',
     group_name: 'Test',
     visible: true,
-    created: null,
-    modified: null,
+    created: "",
+    modified: "",
     deleted: null,
 };
 
@@ -33,7 +33,7 @@ export const baseSection: Section = {
     group_id: 's08190-2918',
     group: baseGroup,
     osm_section_id: 92810,
-    created: null,
-    modified: null,
+    created: "",
+    modified: "",
     deleted: null,
 };

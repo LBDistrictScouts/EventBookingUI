@@ -5,8 +5,8 @@ import { ServerValidationErrorList } from '../src/data/dataTypes';
 
 
 describe('handleFieldError', () => {
-    let retrieveSpy: jest.SpyInstance;
-    let transformSpy: jest.SpyInstance;
+    let retrieveSpy: jest.SpyInstance | undefined;
+    let transformSpy: jest.SpyInstance | undefined;
 
     afterEach(() => {
         jest.clearAllMocks();
