@@ -13,6 +13,7 @@
     "test:coverage": "jest --config jest.config.ts --coverage"
   },
   "dependencies": {
+    "@lbd-scouts/district-styles": "github:LBDistrictScouts/DistrictStyles",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.8",
     "dayjs": "^1.11.20",

@@ -1,6 +1,6 @@
 import {FormEvent, ReactElement, useState} from "react";
 import {Alert, Card, Col, Container, Form, FormCheck, Row} from "react-bootstrap";
-import {Checkpoint, SavedEntry} from "../../data/dataTypes.ts";
+import {Checkpoint, PersistedEntry} from "../../data/dataTypes.ts";
 import CheckpointHeader from "./CheckpointHeader.tsx";
 import {submitCheckIn} from "../../data/backend.ts";
 import ClearButton from "./ClearButton.tsx";
@@ -9,7 +9,7 @@ interface CheckInFormProps {
     setLoading: CallableFunction
     setComplete: CallableFunction
     setError: CallableFunction
-    entry: SavedEntry
+    entry: PersistedEntry
     setEntry: CallableFunction
     checkpoint: Checkpoint;
 }

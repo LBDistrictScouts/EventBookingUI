@@ -43,7 +43,7 @@ function PrivacyStatement({ acknowledged, onAcknowledge }: PrivacyStatementProps
                 <Alert variant="warning" className="mb-2">
                     <div className="d-flex flex-column flex-sm-row align-items-center text-center text-sm-start gap-2">
                         <span>GDPR &amp; Privacy statement not yet acknowledged.</span>
-                        <Button className="ms-sm-auto" variant="outline-dark" size="sm" onClick={openModal}>
+                        <Button className="ms-sm-auto" variant="warning" size="sm" onClick={openModal}>
                             Review statement
                         </Button>
                     </div>

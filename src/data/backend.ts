@@ -4,7 +4,7 @@ import {
     SectionsDataResponse, EntrySubmissionResponse,
     ServerValidationErrorList, doesNotHaveKeyInErrors,
     SavedEntry, Lookup,
-    BookableEventResponse, BookableEvent, ParticipantType, Entry, EntryResponse, ValidCheckInRequest
+    BookableEventResponse, BookableEvent, ParticipantType, EntryResponse, ValidCheckInRequest, PersistedEntry
 } from "./dataTypes";
 import {looseInstanceOf, assertReadableResponse, JsonValue, isJsonObject, setValidCookie} from "./utilities";
 import {getCookie, removeCookie} from "typescript-cookie";
@@ -157,20 +157,28 @@ export async function getSections(): Promise<Section[]> {
 }
 
 
-export async function SubmitEntryData(data: object, setServerErrors: CallableFunction, setSavedEntry: (entry: SavedEntry) => void): Promise<EntrySubmissionResponse> {
-    const response = await fetchRequest( '/book.json', 'POST', data)
-
+async function handleEntrySubmissionResponse(
+    response: Response,
+    setServerErrors: CallableFunction,
+    setSavedEntry: (entry: PersistedEntry) => void
+): Promise<EntrySubmissionResponse> {
     const result = await response.json();
     if (!isJsonObject<EntrySubmissionResponse>(result)) {
         throw new Error('"response" body must be a top level object')
     }
 
     if (response.ok && result.success) {
-        if (!isJsonObject<SavedEntry>(result.entry)) {
+        if (!isJsonObject<PersistedEntry>(result.entry)) {
             throw new Error('Entry is invalid.')
         }
 
-        setSavedEntry(result.entry)
+        const persistedEntry = preferSavedEntry(result.entry.id, result.entry);
+        if (!persistedEntry) {
+            throw new Error('Entry is invalid.')
+        }
+
+        persistEntry(persistedEntry);
+        setSavedEntry(persistedEntry)
     } else {
         console.error("Error:", result.message);
         // Handle error (e.g., show an error message)
@@ -178,6 +186,27 @@ export async function SubmitEntryData(data: object, setServerErrors: CallableFun
     }
 
     return result;
+}
+
+export async function SubmitEntryData(
+    data: object,
+    setServerErrors: CallableFunction,
+    setSavedEntry: (entry: PersistedEntry) => void
+): Promise<EntrySubmissionResponse> {
+    const response = await fetchRequest('/book.json', 'POST', data)
+
+    return handleEntrySubmissionResponse(response, setServerErrors, setSavedEntry);
+}
+
+export async function SubmitEditedEntryData(
+    entryId: string,
+    data: object,
+    setServerErrors: CallableFunction,
+    setSavedEntry: (entry: PersistedEntry) => void
+): Promise<EntrySubmissionResponse> {
+    const response = await fetchRequest(`/booking/edit/${entryId}.json`, 'PUT', data)
+
+    return handleEntrySubmissionResponse(response, setServerErrors, setSavedEntry);
 }
 
 
@@ -223,7 +252,7 @@ export function getParticipantServerErrors(participantIndex: number, serverError
     return {}
 }
 
-export async function lookupEntry(lookup: Lookup): Promise<Entry|false> {
+export async function lookupEntry(lookup: Lookup): Promise<PersistedEntry|false> {
     const url = host + '/lookup.json';
 
     try {
@@ -256,6 +285,31 @@ export async function lookupEntry(lookup: Lookup): Promise<Entry|false> {
     }
 }
 
+export async function getEntry(entryId: string): Promise<PersistedEntry|false> {
+    try {
+        const response = await fetchRequest(`/entries/view/${entryId}.json`);
+
+        if (response.status === 404) {
+            return false;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!isJsonObject<EntryResponse>(data)) {
+            throw new Error(data?.message || 'Invalid response from server.');
+        }
+
+        return data.entry;
+    } catch (error) {
+        console.error('Get entry failed:', error);
+        throw error;
+    }
+}
+
 
 export function handleReferenceNumber(referenceNumber: string): string {
     referenceNumber = referenceNumber.replace(/^([A-Z]+[0-9]*-?)/gi, '');
@@ -267,7 +321,7 @@ export function handleReferenceNumber(referenceNumber: string): string {
     return referenceNumber;
 }
 
-export function storeEntry(entry: Entry): void {
+export function storeEntry(entry: PersistedEntry): void {
     removeLegacyPathScopedEntryCookies();
     setValidCookie('entry', JSON.stringify(entry));
 }
@@ -275,6 +329,23 @@ export function storeEntry(entry: Entry): void {
 export function storeSavedEntry(entry: SavedEntry): void {
     removeLegacyPathScopedEntryCookies();
     setValidCookie('entry', JSON.stringify(entry));
+}
+
+export function isSavedEntry(entry: PersistedEntry | undefined): entry is SavedEntry {
+    if (!entry) {
+        return false;
+    }
+
+    return "security_code" in entry && "entry_email" in entry && "entry_mobile" in entry;
+}
+
+export function persistEntry(entry: PersistedEntry): void {
+    if (isSavedEntry(entry)) {
+        storeSavedEntry(entry);
+        return;
+    }
+
+    storeEntry(entry);
 }
 
 function removeLegacyPathScopedEntryCookies() {
@@ -293,27 +364,98 @@ function removeLegacyPathScopedEntryCookies() {
     }
 }
 
-export function getSavedEntry(): SavedEntry|undefined {
+function matchesEntryId(entry: PersistedEntry | undefined, entryId?: string): boolean {
+    if (!entry) {
+        return false;
+    }
+
+    if (!entryId) {
+        return true;
+    }
+
+    return entry.id === entryId;
+}
+
+function hasStringField(input: Record<string, unknown>, key: string): boolean {
+    return typeof input[key] === 'string';
+}
+
+function hasNumberField(input: Record<string, unknown>, key: string): boolean {
+    return typeof input[key] === 'number';
+}
+
+function hasParticipantsField(input: Record<string, unknown>): boolean {
+    return Array.isArray(input.participants);
+}
+
+function isSavedEntryCookie(input: unknown): input is SavedEntry {
+    if (!isJsonObject<Record<string, unknown>>(input)) {
+        return false;
+    }
+
+    return (
+        hasStringField(input, 'id') &&
+        hasStringField(input, 'event_id') &&
+        hasStringField(input, 'entry_name') &&
+        hasStringField(input, 'entry_email') &&
+        hasStringField(input, 'entry_mobile') &&
+        hasStringField(input, 'security_code') &&
+        hasStringField(input, 'created') &&
+        hasStringField(input, 'modified') &&
+        hasNumberField(input, 'reference_number') &&
+        hasParticipantsField(input)
+    );
+}
+
+function isEntryCookie(input: unknown): input is PersistedEntry {
+    if (!isJsonObject<Record<string, unknown>>(input)) {
+        return false;
+    }
+
+    return (
+        hasStringField(input, 'id') &&
+        hasStringField(input, 'event_id') &&
+        hasStringField(input, 'entry_name') &&
+        hasStringField(input, 'created') &&
+        hasStringField(input, 'modified') &&
+        hasNumberField(input, 'reference_number') &&
+        hasNumberField(input, 'participant_count') &&
+        hasNumberField(input, 'checked_in_count') &&
+        hasParticipantsField(input)
+    );
+}
+
+export function getSavedEntry(entryId?: string): PersistedEntry|undefined {
     // Cleanup old path-scoped cookies so /edit and /check-in share the same root cookie.
     removeLegacyPathScopedEntryCookies();
 
-    // Prefer the unified key, but fallback to legacy key used by older registration flows.
-    const entryCookie = getCookie('entry') ?? getCookie('saved-entry')
-
+    const entryCookie = getCookie('entry') ?? getCookie('saved-entry');
     if (!entryCookie) {
         return undefined;
     }
 
     const entryValue = JSON.parse(entryCookie);
+    const parsedEntry = isSavedEntryCookie(entryValue) || isEntryCookie(entryValue)
+        ? entryValue
+        : undefined;
 
-    if (isJsonObject<SavedEntry>(entryValue)) {
-        // Migrate legacy cookie key so edit/check-in/register all share one source.
-        setValidCookie('entry', entryValue);
-        removeCookie('saved-entry');
-        return entryValue;
+    if (!matchesEntryId(parsedEntry, entryId)) {
+        return undefined;
     }
 
-    return undefined;
+    setValidCookie('entry', parsedEntry);
+
+    return parsedEntry;
+}
+
+export function preferSavedEntry(entryId: string, entry: PersistedEntry | false): PersistedEntry | false {
+    const savedEntry = getSavedEntry(entryId);
+
+    if (isSavedEntry(savedEntry)) {
+        return savedEntry;
+    }
+
+    return entry;
 }
 
 export function storeEvent(event: BookableEvent): void {

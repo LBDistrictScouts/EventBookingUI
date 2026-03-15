@@ -42,12 +42,30 @@ export interface SavedParticipant extends BaseParticipant {
     created: string;
     modified: string;
     full_name: string;
+    participant_type?: EntryParticipantType;
+    section?: EntryParticipantSection;
 }
 
 export interface Participant extends BaseParticipant {
     access_key: string;
     participant_type: undefined|ParticipantType;
     section: undefined|Section;
+}
+
+export interface EntryParticipantType extends BackEndObject {
+    participant_type: string;
+    adult: boolean;
+    uniformed: boolean;
+    out_of_district: boolean;
+    category: string;
+    sort_order?: number;
+}
+
+export interface EntryParticipantSection extends BackEndObject {
+    section_name: string;
+    participant_type_id: string;
+    group_id: string;
+    osm_section_id: number;
 }
 
 export interface ParticipantTypesDataResponse {
@@ -91,6 +109,9 @@ export interface SavedEntry extends BaseEntry {
     participants: SavedParticipant[];
 }
 
+export type PersistedParticipant = SavedParticipant | EntryParticipant;
+export type PersistedEntry = Entry | SavedEntry;
+
 export interface ServerValidationErrorList {
     [key: string]: {
         [key: string]: string|ServerValidationErrorList;
@@ -100,7 +121,7 @@ export interface ServerValidationErrorList {
 
 export interface EntrySubmissionResponse {
     success: boolean;
-    entry: SavedEntry;
+    entry: PersistedEntry;
     message: string;
     errors: ServerValidationErrorList;
 }
@@ -156,6 +177,8 @@ export interface EntryParticipant {
     modified: string;
     deleted: string | null;
     highest_check_in_sequence: number;
+    participant_type?: EntryParticipantType;
+    section?: EntryParticipantSection;
     full_name: string;
 }
 
@@ -172,7 +195,7 @@ export interface Entry {
 }
 
 export interface EntryResponse {
-    entry: Entry;
+    entry: PersistedEntry;
 }
 
 

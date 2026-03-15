@@ -4,64 +4,22 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
 import RegistrationForm from "./RegistrationForm.tsx";
-import {SavedEntry} from "../../data/dataTypes.ts";
-import {isJsonObject, setValidCookie} from "../../data/utilities.ts";
-import {getSavedEntry} from "../../data/backend.ts";
+import RegistrationConfirmation from "./RegistrationConfirmation.tsx";
+import {PersistedEntry} from "../../data/dataTypes.ts";
+import {isJsonObject} from "../../data/utilities.ts";
+import {getSavedEntry, isSavedEntry, persistEntry} from "../../data/backend.ts";
 
 function Register(): ReactElement {
-    const [savedEntry, setSavedEntry] = useState<SavedEntry|undefined>(getSavedEntry());
+    const [savedEntry, setSavedEntry] = useState<PersistedEntry|undefined>(getSavedEntry());
 
     useEffect(() => {
-        if (isJsonObject<SavedEntry>(savedEntry)) {
-            setValidCookie('entry', savedEntry)
+        if (isJsonObject<PersistedEntry>(savedEntry)) {
+            persistEntry(savedEntry);
         }
     }, [savedEntry])
 
-    if (savedEntry) {
-        return (
-            <Card className="shadow-lg o-hidden border-0 p-0 my-5">
-                <Card.Body className="p-0">
-                    <Row>
-                        <Col lg={5} className={'d-none d-lg-flex'} >
-                            <div className="flex-grow-1 bg-confirmation-image"></div>
-                        </Col>
-                        <Col lg={7}>
-                            <div className="p-3 p-lg-5">
-                                <div className="card bg-success bg-opacity-25 px-0 px-md-3">
-                                    <div className="card-body">
-                                        <h4 className="card-title">Registration Confirmed</h4>
-                                        <h6 className="text-muted card-subtitle my-3">Walking Group Name: <strong>"{savedEntry.entry_name}"</strong></h6>
-                                        <h6 className="text-muted card-subtitle my-3">Contact Email: <strong>"{savedEntry.entry_email}"</strong></h6>
-                                        <h6 className="text-muted card-subtitle my-3">Contact Mobile: <strong>"{savedEntry.entry_mobile}"</strong></h6>
-                                        <div className="card my-3 px-0 px-md-2 px-lg-3">
-                                            <div className="card-body">
-                                                <div className="row">
-                                                    <div className="col-sm-7">
-                                                        <p className="fs-1">{savedEntry.reference_number}</p>
-                                                        <p>Booking Reference</p>
-                                                    </div>
-                                                    <div className="col">
-                                                        <p className="fs-1">{savedEntry.security_code}</p>
-                                                        <p>Security Code</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p className="card-text">You will receive an email confirming the above
-                                            information. You will need the booking reference and security code to
-                                            register on the day of the walk.</p>
-                                        <p className="card-text mb-0">
-                                            Need to make changes?{" "}
-                                            <a href={`/edit/${savedEntry.id}`}>Edit this registration</a>.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </Col>
-                    </Row>
-                </Card.Body>
-            </Card>
-        )
+    if (isSavedEntry(savedEntry)) {
+        return <RegistrationConfirmation entry={savedEntry} />
     }
 
 

@@ -1,3 +1,6 @@
+@use "@lbd-scouts/district-styles/scss";
+@use "bs-icons";
+
 :root {
   --bs-primary: #7413dc;
   --bs-secondary: #00a794;
@@ -24,7 +27,3 @@ ol {
   text-align: start;
   padding-left: 1rem;
 }
-
-@import 'bs-icons';
-
-@import '../../node_modules/bootstrap/scss/bootstrap';

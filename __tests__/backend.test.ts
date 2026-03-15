@@ -8,12 +8,16 @@ import {
     handleFieldError,
     getParticipantServerErrors,
     handleReferenceNumber,
+    getEntry,
     lookupEntry,
     submitCheckIn,
     storeEntry,
+    storeSavedEntry,
     getSavedEntry,
     storeEvent,
     getSavedEvent,
+    SubmitEditedEntryData,
+    SubmitEntryData,
 } from "../src/data/backend";
 
 global.Request = jest.fn().mockImplementation((url, options) => ({
@@ -278,6 +282,34 @@ describe("lookup and check-in requests", () => {
         await expect(lookupEntry({ reference_number: "101", security_code: "abc" })).resolves.toEqual(entry);
     });
 
+    test("getEntry returns false on 404", async () => {
+        (fetch as jest.Mock).mockResolvedValue({
+            status: 404,
+            ok: false,
+        });
+
+        await expect(getEntry("entry-1")).resolves.toBe(false);
+    });
+
+    test("getEntry returns entry on valid response", async () => {
+        const entry = {
+            id: "entry-1",
+            event_id: "evt-1",
+            entry_name: "Leader",
+            participant_count: 1,
+            checked_in_count: 0,
+            created: "",
+            modified: "",
+            reference_number: 101,
+            participants: [],
+        };
+        (fetch as jest.Mock).mockResolvedValue(
+            new (global.Response as any)({ entry }, { status: 200 })
+        );
+
+        await expect(getEntry("entry-1")).resolves.toEqual(entry);
+    });
+
     test("submitCheckIn throws when server rejects request", async () => {
         (fetch as jest.Mock).mockResolvedValue({
             ok: false,
@@ -323,6 +355,24 @@ describe("cookie-backed storage", () => {
         expect(setCookie).toHaveBeenCalledWith("entry", JSON.stringify(entry), expect.any(Object));
     });
 
+    test("storeSavedEntry writes serialized saved entry cookie", () => {
+        const entry = {
+            id: "entry-1",
+            event_id: "evt-1",
+            entry_name: "Leader",
+            entry_email: "leader@example.com",
+            entry_mobile: "07000000000",
+            security_code: "SEC123",
+            created: "",
+            modified: "",
+            reference_number: 101,
+            participants: [],
+        };
+
+        storeSavedEntry(entry as any);
+        expect(setCookie).toHaveBeenCalledWith("entry", JSON.stringify(entry), expect.any(Object));
+    });
+
     test("getSavedEntry reads and parses stored entry cookie", () => {
         const storedEntry = {
             id: "entry-1",
@@ -338,6 +388,32 @@ describe("cookie-backed storage", () => {
         (getCookie as jest.Mock).mockReturnValueOnce(JSON.stringify(storedEntry));
 
         expect(getSavedEntry()).toEqual(storedEntry);
+    });
+
+    test("getSavedEntry reads and parses stored saved-entry cookie", () => {
+        const storedEntry = {
+            id: "entry-1",
+            event_id: "evt-1",
+            entry_name: "Leader",
+            entry_email: "leader@example.com",
+            entry_mobile: "07000000000",
+            security_code: "SEC123",
+            created: "",
+            modified: "",
+            reference_number: 101,
+            participants: [],
+        };
+        (getCookie as jest.Mock).mockImplementation((key: string) => (
+            key === "entry" ? undefined : JSON.stringify(storedEntry)
+        ));
+
+        expect(getSavedEntry()).toEqual(storedEntry);
+    });
+
+    test("getSavedEntry returns undefined for invalid cookie shape", () => {
+        (getCookie as jest.Mock).mockReturnValueOnce(JSON.stringify({ id: "bad-entry" }));
+
+        expect(getSavedEntry()).toBeUndefined();
     });
 
     test("storeEvent and getSavedEvent round-trip event cookie", () => {
@@ -359,5 +435,62 @@ describe("cookie-backed storage", () => {
 
         (getCookie as jest.Mock).mockReturnValueOnce(JSON.stringify(event));
         expect(getSavedEvent()).toEqual(event);
+    });
+});
+
+describe("entry submission persistence", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test("SubmitEntryData persists the saved entry immediately on success", async () => {
+        const savedEntry = {
+            id: "entry-1",
+            event_id: "evt-1",
+            entry_name: "Leader",
+            entry_email: "leader@example.com",
+            entry_mobile: "07000000000",
+            security_code: "SEC123",
+            created: "",
+            modified: "",
+            reference_number: 101,
+            participants: [],
+        };
+        const setSavedEntry = jest.fn();
+        const setServerErrors = jest.fn();
+
+        (fetch as jest.Mock).mockResolvedValue(
+            new (global.Response as any)({ success: true, entry: savedEntry, message: "", errors: {} }, { status: 200 })
+        );
+
+        await SubmitEntryData({ event_id: "evt-1" }, setServerErrors, setSavedEntry);
+
+        expect(setCookie).toHaveBeenCalledWith("entry", JSON.stringify(savedEntry), expect.any(Object));
+        expect(setSavedEntry).toHaveBeenCalledWith(savedEntry);
+    });
+
+    test("SubmitEditedEntryData uses PUT on the edit endpoint", async () => {
+        const savedEntry = {
+            id: "entry-1",
+            event_id: "evt-1",
+            entry_name: "Leader",
+            entry_email: "leader@example.com",
+            entry_mobile: "07000000000",
+            security_code: "SEC123",
+            created: "",
+            modified: "",
+            reference_number: 101,
+            participants: [],
+        };
+
+        (fetch as jest.Mock).mockResolvedValue(
+            new (global.Response as any)({ success: true, entry: savedEntry, message: "", errors: {} }, { status: 200 })
+        );
+
+        await SubmitEditedEntryData("entry-1", { event_id: "evt-1" }, jest.fn(), jest.fn());
+
+        const [url, options] = (fetch as jest.Mock).mock.calls[0];
+        expect(url.toString()).toBe("http://localhost/booking/edit/entry-1.json");
+        expect(options.method).toBe("PUT");
     });
 });

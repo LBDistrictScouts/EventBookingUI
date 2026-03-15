@@ -1,7 +1,7 @@
 import {ReactElement, useEffect, useState} from "react";
 import LookupForm from "./LookupForm.tsx";
 import CheckInForm from "./CheckInForm.tsx";
-import {BookableEvent, Checkpoint, SavedEntry} from "../../data/dataTypes.ts"
+import {BookableEvent, Checkpoint, PersistedEntry} from "../../data/dataTypes.ts"
 import Confirmation from "./Confirmation.tsx";
 import {getBookableEvent, getSavedEntry, getSavedEvent} from "../../data/backend.ts";
 import {Alert} from "react-bootstrap";
@@ -19,7 +19,7 @@ function CheckIn(): ReactElement {
     const { checkpoint_id } = useParams<{ checkpoint_id: string }>();
     const [checkpoint, setCheckpoint] = useState<Checkpoint>()
     const [event, setEvent] = useState<BookableEvent|undefined>(getSavedEvent());
-    const [entry, setEntry] = useState<SavedEntry|undefined>(getSavedEntry());
+    const [entry, setEntry] = useState<PersistedEntry|undefined>(getSavedEntry());
     const [complete, setComplete] = useState(false);
 
     useEffect(() => {

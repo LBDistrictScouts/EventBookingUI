@@ -1,7 +1,7 @@
 import {FormEvent, ReactElement, useState} from "react";
 import {Container, Row, Col, Card, Form, FormControl, FormLabel, Alert} from "react-bootstrap";
-import {handleReferenceNumber, lookupEntry, storeSavedEntry} from "../../data/backend.ts";
-import {Checkpoint, SavedEntry} from "../../data/dataTypes.ts";
+import {handleReferenceNumber, lookupEntry, storeEntry} from "../../data/backend.ts";
+import {Checkpoint, PersistedEntry} from "../../data/dataTypes.ts";
 import CheckpointHeader from "./CheckpointHeader.tsx";
 import {isJsonObject} from "../../data/utilities.ts";
 
@@ -36,8 +36,8 @@ function LookupForm({setLoading, setEntry, checkpoint, invalid, setInvalid}: Che
                 security_code: securityCode,
             });
 
-            if (entry && isJsonObject<SavedEntry>(entry)) {
-                storeSavedEntry(entry);
+            if (entry && isJsonObject<PersistedEntry>(entry)) {
+                storeEntry(entry);
                 setEntry(entry);
                 setLoading(false);
 

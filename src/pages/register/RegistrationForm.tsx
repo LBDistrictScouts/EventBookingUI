@@ -6,7 +6,7 @@ import { useParams } from "react-router";
 import {
     ParticipantType,
     Section,
-    Participant, SavedEntry, SavedParticipant,
+    Participant, PersistedEntry, PersistedParticipant, SavedEntry,
     ServerValidationErrorList
 } from '../../data/dataTypes.ts'
 import {RegisterParticipant} from './RegisterParticipant.tsx'
@@ -16,6 +16,7 @@ import {
     getParticipantTypes,
     getSections,
     handleFieldError,
+    SubmitEditedEntryData,
     SubmitEntryData
 } from "../../data/backend.ts";
 import Row from "react-bootstrap/Row";
@@ -28,13 +29,13 @@ import LoadingScreen from "../../LoadingScreen.tsx";
 
 
 interface RegisterFormProps {
-    setSavedEntry: (entry: SavedEntry) => void;
-    initialEntry?: SavedEntry;
+    setSavedEntry: (entry: PersistedEntry) => void;
+    initialEntry?: PersistedEntry;
     mode?: "create" | "edit";
     eventIdOverride?: string;
 }
 
-function mapSavedParticipantToParticipant(participant: SavedParticipant): Participant {
+function mapPersistedParticipantToParticipant(participant: PersistedParticipant): Participant {
     return {
         access_key: participant.id,
         first_name: participant.first_name ?? "",
@@ -44,6 +45,28 @@ function mapSavedParticipantToParticipant(participant: SavedParticipant): Partic
         participant_type: undefined,
         section: undefined,
     };
+}
+
+function getOptionalEntryField(entry: PersistedEntry | undefined, field: "entry_email" | "entry_mobile"): string {
+    if (!entry || !(field in entry)) {
+        return "";
+    }
+
+    const savedEntry = entry as SavedEntry;
+
+    return savedEntry[field] ?? "";
+}
+
+function hasEditablePiiFields(mode: "create" | "edit", entry?: PersistedEntry): boolean {
+    if (mode === "create") {
+        return true;
+    }
+
+    if (!entry) {
+        return false;
+    }
+
+    return "entry_email" in entry && "entry_mobile" in entry;
 }
 
 function RegistrationForm ({
@@ -56,13 +79,13 @@ function RegistrationForm ({
     const [errors, setErrors] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [participants, setParticipants] = useState<Participant[]>(
-        initialEntry ? initialEntry.participants.map(mapSavedParticipantToParticipant) : []
+        initialEntry ? initialEntry.participants.map(mapPersistedParticipantToParticipant) : []
     );
     const [participantTypes, setParticipantTypes] = useState<ParticipantType[]>([]);
     const [sections, setSections] = useState<Section[]>([]);
     const [entryName, setEntryName] = useState<string>(initialEntry?.entry_name ?? "");
-    const [entryEmail, setEntryEmail] = useState<string>(initialEntry?.entry_email ?? "");
-    const [entryMobile, setEntryMobile] = useState<string>(initialEntry?.entry_mobile ?? "");
+    const [entryEmail, setEntryEmail] = useState<string>(getOptionalEntryField(initialEntry, "entry_email"));
+    const [entryMobile, setEntryMobile] = useState<string>(getOptionalEntryField(initialEntry, "entry_mobile"));
     const [privacyAcknowledged, setPrivacyAcknowledged] = useState<boolean>(false);
     const [singleParticipantWarningVisible, setSingleParticipantWarningVisible] = useState<boolean>(false);
     const [singleParticipantWarningDismissed, setSingleParticipantWarningDismissed] = useState<boolean>(false);
@@ -87,6 +110,7 @@ function RegistrationForm ({
     }, [participants.length]);
 
     const targetEventId = eventIdOverride ?? event_id;
+    const showPiiFields = hasEditablePiiFields(mode, initialEntry);
 
     if (loading || !targetEventId) {
         return <LoadingScreen />;
@@ -115,17 +139,17 @@ function RegistrationForm ({
         const data: Record<string, Participant[]|string|FormDataEntryValue> = {
             event_id: targetEventId,
             entry_name: entryName,
-            entry_email: entryEmail,
-            entry_mobile: entryMobile,
             participants,
         };
-        if (mode === "edit" && initialEntry?.id) {
-            data.entry_id = initialEntry.id;
+        if (showPiiFields) {
+            data.entry_email = entryEmail;
+            data.entry_mobile = entryMobile;
         }
-
         setLoading(true);
-        const response = await SubmitEntryData(data, setServerErrors, setSavedEntry)
-            .finally(() => setLoading(false));
+        const submitRequest = mode === "edit" && initialEntry?.id
+            ? SubmitEditedEntryData(initialEntry.id, data, setServerErrors, setSavedEntry)
+            : SubmitEntryData(data, setServerErrors, setSavedEntry);
+        const response = await submitRequest.finally(() => setLoading(false));
 
         return response;
     };
@@ -155,7 +179,7 @@ function RegistrationForm ({
     };
 
     return (
-        <Form validated={validated} onSubmit={handleSubmit} className={'user'}>
+        <Form noValidate validated={validated} onSubmit={handleSubmit} className={'user'}>
             <div className="mb-3">
                 <FormControl
                     required
@@ -173,7 +197,7 @@ function RegistrationForm ({
                 </Form.Control.Feedback>
                 <InputHelper text={'All members of your walking party must be registered on the same booking form.'} />
             </div>
-            {mode === "create" && (
+            {showPiiFields && (
                 <>
                     <div className="mb-3">
                         <FormControl
@@ -201,6 +225,9 @@ function RegistrationForm ({
                             isInvalid={!!handleFieldError("entry_mobile", serverErrors)}
                             className="form-control-user"
                             type={'tel'}
+                            autoComplete="tel-national"
+                            inputMode="tel"
+                            spellCheck={false}
                             placeholder="Mobile Number"
                             name={'entry_mobile'}
                         />

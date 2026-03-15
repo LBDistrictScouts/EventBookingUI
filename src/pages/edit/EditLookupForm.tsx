@@ -1,11 +1,11 @@
 import { FormEvent, ReactElement, useState } from "react";
 import {Container, Row, Col, Card, Form, FormControl, FormLabel, Button, Alert} from "react-bootstrap";
 import { handleReferenceNumber, lookupEntry } from "../../data/backend.ts";
-import { SavedEntry } from "../../data/dataTypes.ts";
+import { PersistedEntry } from "../../data/dataTypes.ts";
 import { isJsonObject, setValidCookie } from "../../data/utilities.ts";
 
 interface EditLookupFormProps {
-    onEntryLoaded: (entry: SavedEntry) => void;
+    onEntryLoaded: (entry: PersistedEntry) => void;
 }
 
 function EditLookupForm({ onEntryLoaded }: EditLookupFormProps): ReactElement {
@@ -30,7 +30,7 @@ function EditLookupForm({ onEntryLoaded }: EditLookupFormProps): ReactElement {
                 security_code: securityCode,
             });
 
-            if (entry && isJsonObject<SavedEntry>(entry)) {
+            if (entry && isJsonObject<PersistedEntry>(entry)) {
                 setValidCookie("entry", JSON.stringify(entry));
                 onEntryLoaded(entry);
                 return;
