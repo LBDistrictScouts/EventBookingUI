@@ -35,7 +35,7 @@ jobs:
         run: |
           printf '@lbd-scouts:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\nalways-auth=true\n' > .npmrc
         env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_AUTH }}
 
       - name: Restore Yarn cache
         uses: actions/cache@v4
@@ -52,7 +52,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
         env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_AUTH }}
 
       - name: Run static analysis
         run: yarn lint
@@ -83,7 +83,7 @@ jobs:
         run: |
           printf '@lbd-scouts:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\nalways-auth=true\n' > .npmrc
         env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_AUTH }}
 
       - name: Restore Yarn cache
         uses: actions/cache@v4
@@ -100,7 +100,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
         env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_AUTH }}
 
       - name: Build application
         run: yarn build
