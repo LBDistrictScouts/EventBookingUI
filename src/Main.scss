@@ -76,12 +76,79 @@
 
 body {
   min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(0, 167, 148, 0.16), rgba(35, 169, 80, 0.13)),
+    #f6fbf8;
+}
+
+.lbd-page-shell.lbd-page-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at top left, rgba(35, 169, 80, 0.3), transparent 42%),
+    radial-gradient(circle at bottom right, rgba(0, 167, 148, 0.3), transparent 45%),
+    linear-gradient(135deg, rgba(244, 250, 246, 0.62), rgba(220, 240, 231, 0.52));
+  background-size: auto, auto, auto;
+  background-position: top left, bottom right, center;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.lbd-page-shell.lbd-page-shell::after {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  z-index: 0;
+  background-image: url('/img/topography.svg');
+  background-size: 600px;
+  background-position: center;
+  background-repeat: repeat;
+  opacity: 0.65;
+  pointer-events: none;
+  transform: rotate(7deg) scale(1.08);
+  transform-origin: center;
+}
+
+.lbd-page-shell > .container-fluid,
+.lbd-page-shell > .container {
+  position: relative;
+  z-index: 1;
 }
 
 .home-page {
   position: relative;
 }
 
+.hero-panel {
+  max-width: 720px;
+  padding: 1.75rem 1.5rem;
+  border: 1px solid rgba(35, 169, 80, 0.14);
+  border-radius: 1.75rem;
+  background: rgba(239, 243, 241, 0.95);
+  box-shadow: 0 1.5rem 3rem rgba(17, 70, 44, 0.1);
+  backdrop-filter: none;
+}
+
+.hero-panel__badge {
+  max-width: 280px;
+  height: auto;
+  margin-bottom: 1.25rem;
+}
+
 .home-page__content .lbd-page-surface {
   padding: 1.5rem !important;
+  border: 1px solid rgba(35, 169, 80, 0.12);
+  border-radius: 1.5rem;
+  background: rgba(239, 243, 241, 0.95);
+  box-shadow: 0 1.5rem 3rem rgba(17, 70, 44, 0.08);
+  backdrop-filter: none;
+}
+
+@media (min-width: 992px) {
+  .hero-panel {
+    padding: 2.25rem 2.5rem;
+  }
 }

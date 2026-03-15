@@ -17,9 +17,9 @@ export function Hero({bookableEvent}: {bookableEvent: BookableEvent}): ReactElem
             <div className="row h-100">
                 <div
                     className="col-md-10 col-xl-8 text-center d-flex d-sm-flex d-md-flex justify-content-center align-items-center mx-auto justify-content-md-start align-items-md-center justify-content-xl-center">
-                    <div>
+                    <div className="hero-panel">
                         <h1 className="text-uppercase fw-bold mb-3">{bookableEvent.event_name}</h1>
-                        <Image src={'/img/greenway-walk-badge-25.png'} width={'50%'}/>
+                        <Image src={'/img/greenway-walk-badge-25.png'} width={'50%'} className="hero-panel__badge" />
                         <p className="mb-4">{bookableEvent.event_description}</p>
                         <h2 className="text-uppercase fw-bold mb-3"><FormattedDate dt={bookableEvent.start_time} /></h2><a
                         className="btn btn-success fs-5 me-2 py-2 px-4" role="button" href={`/register/${bookableEvent.id}`}>Register</a>
