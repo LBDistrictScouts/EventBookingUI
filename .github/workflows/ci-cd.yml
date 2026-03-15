@@ -33,7 +33,7 @@ jobs:
 
       - name: Set up npm auth for GitHub Packages
         run: |
-          printf '@lbd-scouts:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\nalways-auth=true\n' > .npmrc
+          printf '@lbdistrictscouts:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\nalways-auth=true\n' > .npmrc
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_AUTH }}
 
@@ -81,7 +81,7 @@ jobs:
 
       - name: Set up npm auth for GitHub Packages
         run: |
-          printf '@lbd-scouts:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\nalways-auth=true\n' > .npmrc
+          printf '@lbdistrictscouts:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\nalways-auth=true\n' > .npmrc
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_AUTH }}
 
