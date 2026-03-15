@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  packages: read
 
 jobs:
   test_validate:
@@ -30,8 +31,11 @@ jobs:
       - name: Activate Yarn
         run: corepack prepare yarn@4.6.0 --activate
 
-      - name: Set up npm auth for GitHub registry
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+      - name: Set up npm auth for GitHub Packages
+        run: |
+          printf '@lbd-scouts:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\nalways-auth=true\n' > .npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
 
       - name: Restore Yarn cache
         uses: actions/cache@v4
@@ -47,6 +51,8 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
 
       - name: Run static analysis
         run: yarn lint
@@ -73,8 +79,11 @@ jobs:
       - name: Activate Yarn
         run: corepack prepare yarn@4.6.0 --activate
 
-      - name: Set up npm auth for GitHub registry
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+      - name: Set up npm auth for GitHub Packages
+        run: |
+          printf '@lbd-scouts:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\nalways-auth=true\n' > .npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
 
       - name: Restore Yarn cache
         uses: actions/cache@v4
@@ -90,6 +99,8 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
 
       - name: Build application
         run: yarn build
