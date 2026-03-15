@@ -4,8 +4,10 @@ import { ReactNode, ReactElement } from "react";
 
 export default function DefaultLayout({ children }: { children: ReactNode }): ReactElement {
     return (
-        <Container>
-            {children}
-        </Container>
+        <div className="page-shell">
+            <Container fluid className="px-3 px-lg-4">
+                {children}
+            </Container>
+        </div>
     )
 }

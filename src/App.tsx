@@ -30,9 +30,9 @@ function App(): ReactElement {
     }
 
   return (
-      <>
+      <main className="home-page">
           <Hero bookableEvent={evtData} />
-          <Container className={'py-4 py-xl-5'} >
+          <Container className={'home-page__content py-4 py-xl-5'} >
               <Row>
                   <Col className={'col-md-8 col-xl-6 mx-auto p-4'}>
                       <Timings />
@@ -44,7 +44,7 @@ function App(): ReactElement {
               </Row>
 
           </Container>
-      </>
+      </main>
   )
 }
 
