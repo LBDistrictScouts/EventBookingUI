@@ -34,7 +34,7 @@ function App(): ReactElement {
           <Hero bookableEvent={evtData} />
           <Container className={'home-page__content py-4 py-xl-5'} >
               <Row>
-                  <Col className={'col-md-8 col-xl-6 mx-auto p-4'}>
+                  <Col className={'col-md-8 col-xl-6 mx-auto p-4 lbd-page-surface'}>
                       <Timings />
                       <hr className="my-5"/>
                       <Checkpoints bookableEvent={evtData} />

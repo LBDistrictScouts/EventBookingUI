@@ -28,3 +28,7 @@ coverage
 
 .yarn
 .yarn/*
+
+.env
+.env.*
+!.env.example

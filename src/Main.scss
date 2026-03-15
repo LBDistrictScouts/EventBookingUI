@@ -76,48 +76,12 @@
 
 body {
   min-height: 100vh;
-  background:
-    linear-gradient(135deg, rgba(0, 167, 148, 0.1), rgba(35, 169, 80, 0.08)),
-    #f6fbf8;
-}
-
-.page-shell {
-  position: relative;
-  min-height: 100vh;
-  padding: 1.5rem 0 3rem;
-  overflow: hidden;
-}
-
-.page-shell::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at top left, rgba(35, 169, 80, 0.2), transparent 42%),
-    radial-gradient(circle at bottom right, rgba(0, 167, 148, 0.2), transparent 45%),
-    linear-gradient(135deg, rgba(245, 251, 247, 0.96), rgba(228, 244, 237, 0.92)),
-    url('/img/topography.svg');
-  background-size: auto, auto, auto, 720px;
-  background-position: top left, bottom right, center, center;
-  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
-  opacity: 0.95;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.page-shell > .container-fluid {
-  position: relative;
-  z-index: 1;
 }
 
 .home-page {
   position: relative;
 }
 
-.home-page__content .row > .col-md-8 {
-  border: 1px solid rgba(35, 169, 80, 0.12);
-  border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 1.5rem 3rem rgba(17, 70, 44, 0.08);
-  backdrop-filter: blur(10px);
+.home-page__content .lbd-page-surface {
+  padding: 1.5rem !important;
 }
