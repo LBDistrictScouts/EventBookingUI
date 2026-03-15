@@ -2219,7 +2219,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lbdistrictscouts/district-styles@npm:0.2.1":
+"@lbdistrictscouts/district-styles@npm:^0.2.1":
   version: 0.2.1
   resolution: "@lbdistrictscouts/district-styles@npm:0.2.1::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40lbdistrictscouts%2Fdistrict-styles%2F0.2.1%2F732fc2d54f913d35d4543e410fb09c3cf06829dd"
   dependencies:
@@ -4405,7 +4405,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.29.0"
     "@babel/preset-react": "npm:^7.28.5"
     "@eslint/js": "npm:^10.0.1"
-    "@lbdistrictscouts/district-styles": "npm:0.2.1"
+    "@lbdistrictscouts/district-styles": "npm:^0.2.1"
     "@popperjs/core": "npm:^2.11.8"
     "@testing-library/dom": "npm:^10.4.1"
     "@testing-library/jest-dom": "npm:^6.9.1"
