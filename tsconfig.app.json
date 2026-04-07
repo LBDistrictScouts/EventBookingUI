@@ -14,6 +14,10 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "virtual:last-year-gallery": ["./src/types/virtual-last-year-gallery.d.ts"]
+    },
 
     /* Linting */
     "strict": true,

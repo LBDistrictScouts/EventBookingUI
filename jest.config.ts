@@ -11,6 +11,7 @@ const config: Config = {
     moduleNameMapper: {
         "\\.(css|scss)$": "identity-obj-proxy",
         "^typescript-cookie$": "<rootDir>/__mocks__/typescript-cookie.ts",
+        "^virtual:last-year-gallery$": "<rootDir>/__mocks__/lastYearGallery.ts",
     },
 };
 

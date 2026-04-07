@@ -2,6 +2,7 @@ import {ReactElement, useEffect, useState} from 'react'
 import {Hero} from './pages/index/Hero'
 import {Timings} from './pages/index/Timings'
 import {Checkpoints} from './pages/index/Checkpoints'
+import {LastYearsWalk} from './pages/index/LastYearsWalk'
 import {Questions} from './pages/index/Questions'
 import {Container} from "react-bootstrap";
 import Row from "react-bootstrap/Row";
@@ -34,10 +35,12 @@ function App(): ReactElement {
           <Hero bookableEvent={evtData} />
           <Container className={'home-page__content py-4 py-xl-5'} >
               <Row>
-                  <Col className={'col-md-8 col-xl-6 mx-auto p-4 lbd-page-surface'}>
+                  <Col className={'col-md-10 col-xl-8 mx-auto p-4 lbd-page-surface'}>
                       <Timings />
                       <hr className="my-5"/>
                       <Checkpoints bookableEvent={evtData} />
+                      <hr className="my-5"/>
+                      <LastYearsWalk />
                       <hr className="my-5"/>
                       <Questions bookableEvent={evtData} />
                   </Col>

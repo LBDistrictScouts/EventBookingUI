@@ -1,0 +1,60 @@
+{
+  "name": "event-booking-ui-backend-endpoints",
+  "generatedFrom": "/Users/jacob/Development/event-booking-ui/src/data/backend.ts",
+  "baseUrl": {
+    "default": "https://{window.location.host}",
+    "localhostDevOverride": "http://localhost:8765",
+    "notes": "When running on localhost, the frontend rewrites port 5173 to 8765 and uses http."
+  },
+  "routingNotes": {
+    "apiGatewayPathParamMapping": "For dynamic .json endpoints, API Gateway uses greedy route params (e.g. /entries/view/{entryId+} and /booking/edit/{entryId+}) while integration URIs use non-greedy variables ({entryId}). This maps to frontend paths like /entries/view/:entryId.json and /booking/edit/:entryId.json."
+  },
+  "endpoints": [
+    {
+      "name": "getParticipantTypes",
+      "method": "GET",
+      "path": "/participant-types.json"
+    },
+    {
+      "name": "getBookableEvent",
+      "method": "GET",
+      "path": "/events/current.json"
+    },
+    {
+      "name": "getSections",
+      "method": "GET",
+      "path": "/sections.json"
+    },
+    {
+      "name": "submitEntryData",
+      "method": "POST",
+      "path": "/book.json"
+    },
+    {
+      "name": "submitEditedEntryData",
+      "method": "PUT",
+      "path": "/booking/edit/:entryId.json",
+      "pathParams": [
+        "entryId"
+      ]
+    },
+    {
+      "name": "lookupEntry",
+      "method": "POST",
+      "path": "/lookup.json"
+    },
+    {
+      "name": "getEntry",
+      "method": "GET",
+      "path": "/entries/view/:entryId.json",
+      "pathParams": [
+        "entryId"
+      ]
+    },
+    {
+      "name": "submitCheckIn",
+      "method": "POST",
+      "path": "/check-in.json"
+    }
+  ]
+}
