@@ -148,6 +148,49 @@ jobs:
       - name: Invalidate CloudFront cache
         run: aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
 
+  deploy_test:
+    name: Deploy Test
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: test
+    env:
+      AWS_REGION: eu-west-1
+      S3_BUCKET_NAME: greenway-test-bucket
+      CLOUDFRONT_ALIAS: greenway-test.lbdscouts.org.uk
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload to S3
+        run: aws s3 sync dist "s3://${S3_BUCKET_NAME}" --delete
+
+      - name: Resolve CloudFront distribution
+        run: |
+          distribution_id="$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Aliases.Quantity > \`0\` && contains(Aliases.Items, '${CLOUDFRONT_ALIAS}')].Id | [0]" \
+            --output text)"
+
+          if [ -z "$distribution_id" ] || [ "$distribution_id" = "None" ]; then
+            echo "No CloudFront distribution found for ${CLOUDFRONT_ALIAS}" >&2
+            exit 1
+          fi
+
+          echo "CLOUDFRONT_DISTRIBUTION_ID=${distribution_id}" >> "$GITHUB_ENV"
+
+      - name: Invalidate CloudFront cache
+        run: aws cloudfront create-invalidation --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" --paths "/*"
+
   deploy_production:
     name: Deploy Production
     runs-on: ubuntu-latest
